@@ -44,7 +44,7 @@ link_directories($ENV{MPMUTILS}/Visualization/)
 # Creating entries for target: elemesholve
 # ############################
 
-add_executable( elemesholve elemesholve.cc UmfSparse.cc )
+add_executable( elemesholve elemesholve.cc UmfSparse.cc FEMesh.cc )
 target_compile_features(elemesholve PRIVATE cxx_auto_type)
 
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS elemesholve )

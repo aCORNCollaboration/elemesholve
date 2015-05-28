@@ -1,3 +1,6 @@
+#ifndef UMFSPARSE_HH
+#define UMFSPARSE_HH
+
 #include <map>
 using std::map;
 #include <vector>
@@ -45,3 +48,4 @@ protected:
     void* Numeric = NULL;
 };
 
+#endif
