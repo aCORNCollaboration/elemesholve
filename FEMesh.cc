@@ -127,7 +127,7 @@ void FEMesh::set_boundary_points(const vector<Vertex_handle>& bpts) {
             int j = (i+1)%3;
             int k = (i+2)%3;
             if(vnum[i] >= 0) {
-                assert(vnum[i] < nfree && vnum[j] < (int)nfree && vnum[k] < (int)nfree);
+                assert(vnum[i] < (int)nfree && vnum[j] < (int)nfree && vnum[k] < (int)nfree);
                 K(vnum[i], vnum[i]) += meshtri[f].kij[i][i];
                 if(vnum[j] >= 0) K(vnum[i], vnum[j]) += meshtri[f].kij[i][j];
                 if(vnum[k] >= 0) K(vnum[i], vnum[k]) += meshtri[f].kij[i][k];
@@ -164,7 +164,7 @@ void FEMesh::solve() {
 
 void FEMesh::draw() {
     cout << "Drawing mesh...\n";
-    int tn = 0;
+    unsigned int tn = 0;
     for(auto it = cdt.finite_faces_begin(); it != cdt.finite_faces_end(); it++) {
         if(!it->is_in_domain()) continue;
         vsr::startLines();

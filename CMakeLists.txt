@@ -51,3 +51,7 @@ add_to_cached_list( CGAL_EXECUTABLE_TARGETS elemesholve )
 
 # Link the executable to CGAL and third-party libraries
 target_link_libraries(elemesholve ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} MPMVis GL glut blas umfpack )
+
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_BUILD_TYPE debug)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3 -Wextra -Wpedantic")

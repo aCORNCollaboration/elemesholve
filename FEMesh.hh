@@ -89,6 +89,8 @@ public:
     /// Draw mesh
     void draw();
     
+    double draw_logz = 0;
+    
 protected:
     CDT& cdt;                                   ///< the mesh
     size_t nbound;                              ///< number of bound degrees of freedom

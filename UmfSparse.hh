@@ -12,15 +12,15 @@ using std::pair;
 class UmfSparse {
 public:
     /// Constructor for m x n matrix (dynamically resizeable)
-    UmfSparse(int m = 0, int n = 0): mmax(m), nmax(n) { }
+    UmfSparse(unsigned int m = 0, unsigned int n = 0): mmax(m), nmax(n) { }
     
     /// Destructor
     ~UmfSparse();
     
     /// Element access operator
-    double& operator()(int i, int j);
+    double& operator()(unsigned int i, unsigned int j);
     /// Const access operator
-    double operator()(int i, int j) const;
+    double operator()(unsigned int i, unsigned int j) const;
     
     /// Sort data by row
     void sort();
@@ -43,7 +43,7 @@ protected:
     bool is_sorted = false;     ///< whether data arrays are in sorted order
     
     map< pair<int, int>, int > index;
-    int mmax, nmax;
+    unsigned int mmax, nmax;
     void* Symbolic = NULL;
     void* Numeric = NULL;
 };
