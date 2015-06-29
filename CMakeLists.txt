@@ -56,7 +56,7 @@ link_directories($ENV{MPMUTILS}/Visualization/ $ENV{MPMUTILS}/GeneralUtils/ )
 # Creating entries for target: elemesholve
 # ############################
 
-add_executable( elemesholve elemesholve.cc CellMatrix.cc EigenSparse.cc FEMesh2.cc FEMesh3.cc FEMesh3Slice.cc GeomDef.cc GeomSetup.cc MeshSlice.cc MeshVis.cc UmfSparse.cc )
+add_executable( elemesholve elemesholve.cc CalculationProcess.cc CellMatrix.cc EigenSparse.cc FEMesh2.cc FEMesh3.cc FEMesh3Slice.cc GeomDef.cc GeomSetup.cc MeshSlice.cc MeshVis.cc UmfSparse.cc )
 target_compile_features(elemesholve PRIVATE cxx_auto_type)
 
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS elemesholve )

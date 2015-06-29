@@ -44,7 +44,7 @@ public:
     
 protected:
     /// Constructor protected; make subclass for filling out cells array.
-    FEMeshSolver(SparseMatrixBase* myK, SparseMatrixBase* mytK): K(myK), tK(mytK) { }
+    FEMeshSolver(SparseMatrixBase* myK = NULL, SparseMatrixBase* mytK = NULL): K(myK), tK(mytK) { }
     
     /// vertex position dump subroutine
     virtual void dump_vertex_position(const void* v, ostream& o) const = 0;
@@ -55,9 +55,9 @@ protected:
     
     map<void*, int> vertex_enum;                ///< vertices, enumerated for matrix index
    
-    SparseMatrixBase* K;                            ///< free vertices stiffness matrix
+    SparseMatrixBase* K;                        ///< free vertices stiffness matrix
     double Knorm, Kcond;                        ///< norm and condition for solution system
-    SparseMatrixBase* tK;                           ///< ~K boundary DF matrix
+    SparseMatrixBase* tK;                       ///< ~K boundary DF matrix
     vector<double> tKh;                         ///< RHS forcing terms of system
     
     vector<double> bvals;                       ///< boundary vertex values
@@ -137,6 +137,7 @@ void FEMeshSolver<D>::set_boundary_points(const MeshBoundaryConditions& M) {
     for(auto it = vertex_enum.begin(); it != vertex_enum.end(); it++) if(it->second == 0) it->second = nfree++;
     cout << nbound << " bound + " << nfree << " free vertices = " << vertex_enum.size() << " total.\n";
     
+    assert(tK && K);
     tK->resize(nfree, nbound);
     K->resize(nfree, nfree);
     

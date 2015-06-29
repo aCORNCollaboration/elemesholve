@@ -5,6 +5,7 @@
 // -- Michael P. Mendenhall, 2015
 
 #include "EigenSparse.hh"
+#include "ProgressBar.hh"
 #include <cassert>
 
 void EigenSparse::display() const { printf("EigenSparse (%i x %i) matrix.\n", M.rows(), M.cols()); }
@@ -18,8 +19,14 @@ void EigenSparse::setupSolver() {
 
 void EigenSparse::finalize() {
     printf("Loading %zu matrix entries...\n", vals.size());
+    ProgressBar* PB = new ProgressBar(vals.size(),vals.size()/20);
     M.reserve(Eigen::VectorXi::Constant(M.cols(), 20));
-    for(auto it = vals.begin(); it != vals.end(); it++)  M.insert(it->first.first, it->first.second) = it->second;
+    int nloaded = 0;
+    for(auto it = vals.begin(); it != vals.end(); it++) {
+        M.insert(it->first.first, it->first.second) = it->second;
+        PB->update(nloaded++);
+    }
+    delete PB;
     vals.clear();
 }
 

@@ -28,8 +28,8 @@ FEMeshSolver(new EigenSparse(), new EigenSparse()) {
 }
 
 FEMesh3::~FEMesh3() {
-    delete K;
-    delete tK;
+    if(K) delete K;
+    if(tK) delete tK;
 }
 
 void FEMesh3::dump_vertex_position(const void* v, ostream& o) const {

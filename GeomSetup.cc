@@ -25,9 +25,9 @@ void GeomSetup::add_features(Mesh_domain& D) const {
 ///////////////////////////////////////////////////////////
 
 WireCap::WireCap():
-wire_radius(0.005),      // nominal 0.005
+wire_radius(0.05),      // nominal 0.005
 wire_radius2(wire_radius*wire_radius),
-wire_spacing(0.2),      // nominal 0.2
+wire_spacing(1.0),      // nominal 0.2
 entrance_radius(3.26*2.54/2.),
 entrance_radius2(entrance_radius*entrance_radius),
 exit_radius(3.928),
@@ -156,11 +156,14 @@ double MirrorBands::band_V(double z) const {
 
 ////////////////////////////////////////
 
-EMirrorWorldVolume::EMirrorWorldVolume(const CoordinateTransform* CT): GeomWorldVolume(CT), MB(-10, true) { 
-    world_dz = 10;
-    world_r = 10;
-    world_rr = world_r*world_r;
+EMirrorWorldVolume::EMirrorWorldVolume(const CoordinateTransform* CT):
+GeomDomainFunction(CT),
+MB(-10, true),
+world_dz(10),
+world_r(10),
+world_rr(world_r*world_r) {
     world_meshsize = 1.5;
+    myBounds = CGAL::Bbox_3(-world_r-1, -world_r-1, -world_dz-1,  world_r+1, world_r+1, world_dz+1);
 }
 
 int EMirrorWorldVolume::f(double x, double y, double z) const {
@@ -173,13 +176,14 @@ int EMirrorWorldVolume::f(double x, double y, double z) const {
 
 double EMirrorWorldVolume::edgesize(double, double, double z) const {
     if(fabs(z-WC.gridz) < 1.1*WC.wire_radius) return WC.wire_radius;
-    return 0.02;
+    return 0.2;
 }
 
 void EMirrorWorldVolume::add_features(Polylines& v) const {
-    GeomWorldVolume::add_features(v);
+    for(int zi = -1; zi <= 1; zi += 2) zcircle(v, 0, 0, world_dz*zi, world_r, 1000);
     zcircle(v, 0, 0, MB.top_band_z, world_r, 1000);
     zcircle(v, 0, 0, -world_dz, MB.mirror_radius, 1000);
+    zcircle(v, 0, 0, WC.platez, MB.mirror_radius, 1000);
     double sqz = 1.0;
     if(T) T->mesh2phys_J(K::Point_3(0,0,WC.gridz), sqz);
     WC.add_features(v, sqz);
@@ -196,9 +200,7 @@ double EMirrorWorldVolume::meshsize(double x, double y, double z) const {
 /////////////////////////////////////
 
 EMirrorGeom::EMirrorGeom(const CoordinateTransform* CT): myWorld(CT)  {
-
     theWorld = &myWorld;
-    //myWorld.display();
     
     myWorld.add_features(polylines);
     printf("Setting %zu features.\n", polylines.size());

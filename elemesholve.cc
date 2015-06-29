@@ -5,14 +5,9 @@
 // -- Michael P. Mendenhall, 2015
 
 #include "FEMesh2.hh"
-#include "FEMesh3.hh"
 #include "Visr.hh"
-#include "MeshVis.hh"
-#include "GeomSetup.hh"
-#include "MeshSlice.hh"
-#include "FEMesh3Slice.hh"
+#include "CalculationProcess.hh"
 #include <CGAL/config.h>
-#include <CGAL/triangulate_polyhedron.h>
 
 #include <tbb/task_scheduler_init.h>
 #include <ctime>
@@ -104,69 +99,43 @@ void demo2D() {
 
 void meshgen_test() {
 
-    //SphereTestGeom G;
-    YSqueezeTransform YSQ(0, 10., 0.7);
-    EMirrorGeom G(&YSQ);
-    YSQ.z0 = G.myWorld.WC.gridz;
+    CalculationProcess CP;
     
-    GeomDomainFunctionWrapper GW(G.theWorld);
-    GeomDomainMeshsizeWrapper RadiusMesh(G.theWorld, 0.5);
-    
-    Mesh_domain domain(GW, K::Sphere_3(CGAL::ORIGIN, 250), 1e-6);
-    G.add_features(domain);
-
-    Edge_criterea edge_criterea(RadiusMesh);
-    Facet_criteria facet_criteria(15,           // angle bound
-                                  RadiusMesh,   // radius bound field
-                                  3e-2,         // distance bound
-                                  CGAL::FACET_VERTICES_ON_SURFACE      // facet topology requirement
-                                 );
-    Cell_criteria cell_criteria(5,              // radius-edge ratio
-                                RadiusMesh      // sizing field
-                               );
-    Mesh_criteria criteria(edge_criterea, facet_criteria, cell_criteria);
-    
-    // Mesh generation
     clock_t startTime = clock();
-    printf("Generating mesh...\n");
-    //C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(domain, criteria);
-    C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(domain, criteria, no_exude(), no_perturb());
-    printf("Perturbing mesh...\n");
-    CGAL::perturb_mesh_3(c3t3, domain, time_limit = 5);
-    printf("Exuding mesh...\n");
-    CGAL::exude_mesh_3(c3t3,12); 
+    CP.gen_mesh();
+    CP.refine_mesh();
     clock_t endTime = clock();
     cout << "Mesh generation completed in " << (endTime - startTime)/float(CLOCKS_PER_SEC) << " seconds.\n";
     
-    // Find boundary points
-    G.calc_bvals(c3t3);
+    //std::ofstream f("mesh.dat");
+    //CGAL::set_binary_mode(f);
+    //f << c3t3.triangulation();
+    //cout << "Triangulation mesh to file 'mesh.dat'\n";
+    
+    // Find boundary points; impose boundary conditions
+    CP.setup_solver();
+    assert(CP.M);
     
     // Slice!
     K::Plane_3 SPx(K::Point_3(0,0,0), K::Vector_3(-1,0,0));
     K::Plane_3 SPy(K::Point_3(0,0,0), K::Vector_3(0,1,0));
-    FEMesh3Slice MSx(c3t3, SPx, &YSQ);
-    FEMesh3Slice MSy(c3t3, SPy, &YSQ);
+    FEMesh3Slice MSx(CP.c3t3, SPx, &CP.YSQ);
+    FEMesh3Slice MSy(CP.c3t3, SPy, &CP.YSQ);
     
     // Visualize
-    C3t3_Vis V(c3t3, &YSQ);
+    C3t3_Vis V(CP.c3t3, &CP.YSQ);
     V.print();
 
     vsr::startRecording(true);
     vsr::clearWindow();
     vsr::setColor(0,0,1);
     MSy.draw();
-    V.draw(&G);
+    V.draw(&CP.G);
     vsr::stopRecording();
-    
-    //vsr::pause();
-    
-    // electrostatic calculation
-    FEMesh3 M(c3t3, &YSQ);
-    M.set_boundary_points(G);
-    M.set_boundary_values(G);
+    vsr::pause();
     
     startTime = clock();
-    M.solve();
+    CP.M->solve();
     endTime = clock();
     cout << "Matrix solution calculated in " << (endTime - startTime)/float(CLOCKS_PER_SEC) << " seconds.\n";
     
@@ -178,10 +147,10 @@ void meshgen_test() {
     vtxdump.close();
     */
     
-    MSx.calc_vtxvals(M);
-    MSx.write_svg("slice_x.svg",M);
-    MSy.calc_vtxvals(M);
-    MSy.write_svg("slice_y.svg",M);
+    MSx.calc_vtxvals(*CP.M);
+    MSx.write_svg("slice_x.svg",*CP.M);
+    MSy.calc_vtxvals(*CP.M);
+    MSy.write_svg("slice_y.svg",*CP.M);
     
     vsr::startRecording(true);
     vsr::clearWindow();

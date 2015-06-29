@@ -64,11 +64,15 @@ public:
     virtual double meshsize(double x, double y, double z) const = 0;
     /// linear feature preservation size function
     virtual double edgesize(double x, double y, double z) const { return meshsize(x,y,z); }
-    
     /// recommendend "free space" mesh size
     double world_meshsize = 1.;
     
-    const CoordinateTransform* T;     ///< meshing coordinate transform
+    /// add mesh-guiding "features" to Polylines list
+    virtual void add_features(Polylines&) const { }
+    
+    CGAL::Bbox_3 myBounds;              ///< bounding box for domain
+    
+    const CoordinateTransform* T;       ///< meshing coordinate transform
 };
 
 #include <boost/type_traits/remove_reference.hpp>
@@ -102,148 +106,6 @@ public:
 protected:
     const GeomDomainFunction* G;
 };
-
-class GeomSubVolume;
-
-/// Geometry "world volume" (cylinder)
-class GeomWorldVolume: public GeomDomainFunction {
-public:
-    GeomWorldVolume(const CoordinateTransform* CT = NULL);
-    ~GeomWorldVolume() { }
-    
-    /// identify sub-volume containing point
-    virtual const GeomSubVolume* findPoint(double x, double y, double z) const;
-    
-    /// labeling function
-    virtual int f(double x, double y, double z) const;
-    
-    /// mesh sizing field, locating point in hierarchy
-    virtual double meshsize(double x, double y, double z) const;    
-    
-    mutable const GeomSubVolume* prevLocated = NULL;    ///< volume responsible for previously-located point
-    map<double, GeomSubVolume*> zslices;                ///< sub-volumes for slices in z /start: volume /start: volume / ... 
-    vector<GeomSubVolume*> allSubVolumes;               ///< complete list of registered sub-volumes
-    
-    /// add internal item to Z stack
-    void addLayer(GeomSubVolume* V);
-    /// add mesh-guiding "features" to Polylines list
-    virtual void add_features(Polylines& v) const;
-    
-    /// print contents summary
-    void display() const;
-    
-    double world_dz = 1;
-    double world_rr = 1;
-    double world_r = 1;
-};
-
-/// Generic geometry sub-volume of world
-#include <CGAL/Bbox_3.h>
-class GeomSubVolume {
-public:
-    GeomSubVolume(GeomWorldVolume* W, GeomSubVolume* P = NULL);
-    
-    /// return subvolume containing point, or NULL if outside sub-volume
-    virtual const GeomSubVolume* findPoint(double x, double y, double z) const = 0;
-    
-    /// mesh sizing field for point assumed in this volume
-    virtual double meshsize(double x, double y, double z) const { return 0.1; }
-    
-    /// add mesh-guiding "features" to Polylines list
-    virtual void add_features(Polylines&) const { }
-    
-    CGAL::Bbox_3 myBounds;              ///< bounding box for this item
-    GeomSubVolume* parent;              ///< parent volume
-    GeomWorldVolume* theWorld;          ///< world volume
-    int myLabel = 0;                    ///< domain label
-};
-
-class GeomSphereFunction: public GeomSubVolume {
-public:
-    /// Constructor
-    GeomSphereFunction(GeomWorldVolume* W, double rsquared, double xc, double yc, double zc, GeomSubVolume* P = NULL);
-    /// return subvolume containing point, or NULL if outside sub-volume
-    virtual const GeomSubVolume* findPoint(double x, double y, double z) const;
-    
-    /// add mesh-guiding "features" to Polylines list
-    virtual void add_features(Polylines&) const;
-    
-    double rr;  ///< radius squared
-    double r;   ///< radius
-    double x0, y0, z0; ///< center position
-};
-
-class GeomTorusFunction: public GeomSubVolume {
-public:
-    /// Constructor
-    GeomTorusFunction(GeomWorldVolume* W, double RR, double rr, GeomSubVolume* P = NULL);
-    /// return subvolume containing point, or NULL if outside sub-volume
-    virtual const GeomSubVolume* findPoint(double x, double y, double z) const;
-    /// add mesh-guiding "features" to Polylines list
-    virtual void add_features(Polylines&) const;
-    
-    double R;   ///< major radius
-    double r;   ///< minor radius
-};
-
-/// Box sliced into equal divisions in x
-class GeomXSliceBox: public GeomSubVolume {
-public:
-    /// Constructor
-    GeomXSliceBox(GeomWorldVolume* W, const CGAL::Bbox_3& B, GeomSubVolume* P = NULL);
-    /// return subvolume containing point, or NULL if outside sub-volume
-    virtual const GeomSubVolume* findPoint(double x, double y, double z) const;
-    /// mesh sizing field for point assumed in this volume
-    virtual double meshsize(double x, double y, double z) const;
-    
-    /// add contents box
-    void addContents(GeomSubVolume* V);
-    /// get box number for given x
-    int boxnum(double x) const;
-    /// box center n for m subdivisions
-    void calcCenter(int n, int m, double& x, double& y, double& z) const;
-    
-    double mesh_rmin = 0.1;             ///< minimum radius for adaptive mesh refinement
-    
-protected:
-    vector<GeomSubVolume*> contents;    ///< contents for each x slice
-    double x0, y0, z0;                  ///< box center
-};
-
-/// y-directed cylinder
-class GeomYRod: public GeomSubVolume {
-public:
-    /// Constructor
-    GeomYRod(GeomWorldVolume* W, double xc, double yc, double zc, double ly, double rxy, GeomSubVolume* P = NULL);
-    /// return subvolume containing point, or NULL if outside sub-volume
-    virtual const GeomSubVolume* findPoint(double x, double y, double z) const;
-    /// mesh sizing field for point assumed in this volume
-    virtual double meshsize(double x, double y, double z) const;
-    /// add mesh-guiding "features" to Polylines list
-    virtual void add_features(Polylines& v) const;
-    
-    double rr, r;               ///< radius^2, radius
-    double x0, y0, z0;          ///< center coorindate
-    double dy;                  ///< length in y 
-};
-
-/// ring electrode
-class GeomRing: public GeomSubVolume {
-public:    
-    /// Constructor
-    GeomRing(GeomWorldVolume* W, double rin, double rout, double zmn, double zmx, GeomSubVolume* P = NULL);
-    /// return subvolume containing point, or NULL if outside sub-volume
-    virtual const GeomSubVolume* findPoint(double x, double y, double z) const;
-    /// add mesh-guiding "features" to Polylines list
-    virtual void add_features(Polylines& v) const;
-    
-    double ri, ro, rri, rro;    ///< inner, outer radius and radius^2
-    double z0, z1;              ///< z range
-};
-
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
 
 // select Mesh_domain type
 typedef CGAL::Labeled_mesh_domain_3<GeomDomainFunctionWrapper, K> Mesh_domain_base;

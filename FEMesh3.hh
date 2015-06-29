@@ -14,6 +14,8 @@
 /// 3-dimensional solver class
 class FEMesh3: public FEMeshSolver<3> {
 public:
+    /// Do-nothing constructor
+    FEMesh3() { }
     /// Constructor, from 3D triangulation mesh
     FEMesh3(C3t3& M, const CoordinateTransform* T = NULL);
     /// Destructor

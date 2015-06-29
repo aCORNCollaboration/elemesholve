@@ -106,22 +106,24 @@ public:
 };
 
 /// aCORN electrostatic mirror
-class EMirrorWorldVolume: public GeomWorldVolume {
+class EMirrorWorldVolume: public GeomDomainFunction {
 public:
     EMirrorWorldVolume(const CoordinateTransform* CT = NULL);
+    
     /// labeling function
     virtual int f(double x, double y, double z) const;
-    
-    WireCap WC;
-    MirrorBands MB;
-            
     /// linear feature preservation size function
     virtual double edgesize(double x, double y, double z) const;
     /// mesh sizing field
     virtual double meshsize(double x, double y, double z) const;
-    
     /// add mesh-guiding "features" to Polylines list
     virtual void add_features(Polylines& v) const;
+    
+    WireCap WC;
+    MirrorBands MB;
+    double world_dz;    ///< world volume z half-length
+    double world_r;     ///< world volume radius
+    double world_rr;    ///< world volume radius^2
 };
 
 /// aCORN NG-6 electrostatic mirror test geometry
