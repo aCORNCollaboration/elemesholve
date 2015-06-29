@@ -1,9 +1,13 @@
+// This file was produced under the employ of the United States Government,
+// and is consequently in the PUBLIC DOMAIN, free from all provisions of
+// US Copyright Law (per USC Title 17, Section 105).
+// 
+// -- Michael P. Mendenhall, 2015
+
 #ifndef UMFSPARSE_HH
 #define UMFSPARSE_HH
 
 #include "SparseMatrix.hh"
-
-
 
 /// Convenience interface for umfpack sparse matrices
 class UmfSparse: public SparseMatrixBase {
