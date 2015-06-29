@@ -25,9 +25,9 @@ void GeomSetup::add_features(Mesh_domain& D) const {
 ///////////////////////////////////////////////////////////
 
 WireCap::WireCap():
-wire_radius(0.05),      // nominal 0.005
+wire_radius(0.005),      // nominal 0.005
 wire_radius2(wire_radius*wire_radius),
-wire_spacing(1.0),      // nominal 0.2
+wire_spacing(0.5),      // nominal 0.2
 entrance_radius(3.26*2.54/2.),
 entrance_radius2(entrance_radius*entrance_radius),
 exit_radius(3.928),
@@ -39,7 +39,7 @@ platez(gridz-wire_radius)
 { }
 
 bool WireCap::inVolume(double x, double y, double z, double rr) const {
-    if(z < gridz-wire_radius || z > gridz+thickness) return false;
+    if(z < platez || z > platez+thickness) return false;
     
     if(rr < entrance_radius2) {
         if(z > gridz + wire_radius) {
@@ -52,7 +52,7 @@ bool WireCap::inVolume(double x, double y, double z, double rr) const {
             return false;
         }
         double wx = x/wire_spacing-0.5+100;
-        wx = wx-int(wx)-0.5;
+        wx = (wx-int(wx)-0.5)*wire_spacing;
         return wx*wx + (z-gridz)*(z-gridz) < wire_radius2;
     }
     
@@ -67,7 +67,7 @@ double WireCap::mesh_radius(double x, double y, double z, double rr) const {
     double mr2 = 0;
     if(rr < entrance_radius2) {
         double wx = x/wire_spacing-0.5+100;
-        wx = wx-int(wx)-0.5;
+        wx = (wx-int(wx)-0.5)*wire_spacing;
         mr2 = wx*wx + (z-gridz)*(z-gridz);
     } else {
         double dr = sqrt(rr)-entrance_radius;
@@ -78,26 +78,91 @@ double WireCap::mesh_radius(double x, double y, double z, double rr) const {
 }
 
 void WireCap::add_features(Polylines& v, double sqz) const {
-    zcircle(v, 0, 0, gridz-wire_radius, entrance_radius, 1000);
-    zcircle(v, 0, 0, gridz-wire_radius+thickness/2., entrance_radius, 1000);
+    zcircle(v, 0, 0, platez, entrance_radius, 1000);
+    zcircle(v, 0, 0, platez+thickness/2., entrance_radius, 1000);
+    zcircle(v, 0, 0, platez+3*thickness/4., exit_radius, 1000);
     
-    if(sqz != 1) printf("Protecting wires with squeeze %g\n", sqz);
-    int ppl = 25;
-    int nloops = int(0.5/sqz*2*entrance_radius/wire_radius)+1;
-    int npts = ppl*nloops;
-    
+    int ppc = 100;
     for(double x0 = -wire_spacing*int(entrance_radius/wire_spacing);
         x0 < entrance_radius; x0 += wire_spacing) {
-
-        Polyline_3 coil;
-        for(int i=0; i<=npts; i++) {
-            double l = double(i)/npts;
-            double th = l*nloops*2*CGAL_PI;
-            K::Point_3 p(x0 + wire_radius*cos(th), 2*(l-0.5)*entrance_radius, gridz + wire_radius*sin(th));
-            if(p.x()*p.x() + p.y()*p.y() < entrance_radius2) coil.push_back(p);
+        if(x0 <= -entrance_radius) continue;
+        
+        if(false) { // end circles
+            for(int ymul = -1; ymul <= 1; ymul += 2) {
+                Polyline_3 coil;
+                for(int i=0; i<ppc; i++) {
+                    double th = i*2*M_PI/ppc;
+                    double x = x0 + wire_radius*cos(th);
+                    double z = gridz + wire_radius*sin(th);
+                    if(x < entrance_radius) {
+                        double y = ymul*sqrt(entrance_radius2 - x*x);
+                        coil.push_back(K::Point_3(x,y,z));
+                    }
+                }
+                if(coil.size() >= 2) {
+                    coil.push_back(coil.front());
+                    v.push_back(coil);
+                }
+            }
         }
-        if(coil.size() >= 2) v.push_back(coil);
+        
+        if(false) { // edge lines
+            int nedg = 5;
+            for(int n=0; n<nedg; n++) {
+                double th = n*2*M_PI/nedg;
+                double x = x0 + wire_radius*cos(th);
+                double z = gridz + wire_radius*sin(th);
+                if(fabs(x0) >= entrance_radius) continue;
+                double dy = sqrt(entrance_radius2 - x*x);
+                Polyline_3 edge;
+                for(int i=-1; i<=1; i+=2) {
+                    double y = i*dy;
+                    edge.push_back(K::Point_3(x, y, z));
+                }
+                v.push_back(edge);
+            }
+        }
+        
+        if(true) { // helices
+            //if(sqz != 1) printf("Protecting wires with squeeze %g\n", sqz);
+            int ppl = 25;
+            int nloops = int(0.5/sqz*1*entrance_radius/wire_radius)+1;
+            int npts = ppl*nloops;
+            
+            Polyline_3 coil;
+            for(int i=0; i<=npts; i++) {
+                double l = double(i)/npts;
+                double th = l*nloops*2*CGAL_PI;
+                K::Point_3 p(x0 + wire_radius*cos(th), 2*(l-0.5)*entrance_radius, gridz + wire_radius*sin(th));
+                if(p.x()*p.x() + p.y()*p.y() < entrance_radius2) coil.push_back(p);
+            }
+            if(coil.size() >= 2) v.push_back(coil);
+        }
+        
+        if(false) { // circles
+            int ppl = 25;
+            int nc = 0.3*sqz*entrance_radius/wire_radius;
+            for(int c=0; c<=nc; c++) {
+                Polyline_3 circ;
+                double y = (c*2./nc - 1.)*entrance_radius;
+                for(int i=0; i<ppl; i++) {
+                    double th = i*2*CGAL_PI/ppl;
+                    double x = x0 + wire_radius*cos(th);
+                    if(x*x + y*y >= entrance_radius2) break;
+                    double z = gridz + wire_radius*sin(th);
+                    circ.push_back(K::Point_3(x,y,z));
+                }
+                if((int)circ.size() == ppl) {
+                    circ.push_back(circ.front());
+                    v.push_back(circ);
+                }
+            }
+        }
     }
+    
+    return;
+    
+   
 }
 
 ////////////////////////////////////////
@@ -175,7 +240,7 @@ int EMirrorWorldVolume::f(double x, double y, double z) const {
 }
 
 double EMirrorWorldVolume::edgesize(double, double, double z) const {
-    if(fabs(z-WC.gridz) < 1.1*WC.wire_radius) return WC.wire_radius;
+    if(fabs(z-WC.gridz) < 1.01*WC.wire_radius) return (M_PI*WC.wire_radius)/6.;
     return 0.2;
 }
 

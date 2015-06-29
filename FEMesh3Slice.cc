@@ -143,6 +143,6 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
     
     s.setView(BB, 10);
     s.write(o);
-    //rsvg-convert -f pdf -o slice.pdf slice.svg
+    //rsvg-convert -f pdf -o slice_y.pdf slice_y.svg
     o.close();
 }

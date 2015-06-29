@@ -68,7 +68,7 @@ public:
     void add_features(Polylines& v, double sqz = 1.0) const;
     
     const double wire_radius;           ///< grid wire radius
-    const double wire_radius2;          ///< grid wire radius
+    const double wire_radius2;          ///< grid wire radius^2
     const double wire_spacing;          ///< spacing between wires
     const double entrance_radius;       ///< entrance hole radius
     const double entrance_radius2;      ///< entrance hole radius^2

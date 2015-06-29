@@ -73,6 +73,11 @@ void MeshSlice::find_intersections(const Tr::Cell_handle& C, set< MS_HDS::Vertex
             }
         }
     }
+    
+    if(ixn_vertices.size() > 4) {
+        printf("Oversized vertex list (%zu); skipping!\n", ixn_vertices.size());
+        ixn_vertices.clear(); // TODO shouldn't need this!
+    }
 }
 
 MS_HDS::Halfedge_handle MeshSlice::new_edge(MS_HDS::Vertex_handle vfrom, MS_HDS::Vertex_handle vto) {

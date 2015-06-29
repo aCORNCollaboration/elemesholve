@@ -10,7 +10,7 @@ domain(GW, G.theWorld->myBounds, 1e-6),
 edge_criterea(RadiusMesh),
 facet_criteria(15,           // angle bound
                RadiusMesh,   // radius bound field
-               1e-2,         // distance bound
+               2e-3,         // distance bound
                CGAL::FACET_VERTICES_ON_SURFACE ),     // facet topology requirement
                //CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK ),
 cell_criteria(5,              // radius-edge ratio
