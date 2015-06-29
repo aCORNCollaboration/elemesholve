@@ -1,40 +1,43 @@
 #ifndef UMFSPARSE_HH
 #define UMFSPARSE_HH
 
-#include <map>
-using std::map;
-#include <vector>
-using std::vector;
-using std::pair;
-#include <stdio.h>
+#include "SparseMatrix.hh"
+
+
 
 /// Convenience interface for umfpack sparse matrices
-class UmfSparse {
+class UmfSparse: public SparseMatrixBase {
 public:
-    /// Constructor for m x n matrix (dynamically resizeable)
-    UmfSparse(unsigned int m = 0, unsigned int n = 0): mmax(m), nmax(n) { }
+    /// Constructor
+    UmfSparse(): SparseMatrixBase() { }
     
     /// Destructor
     ~UmfSparse();
     
     /// Element access operator
-    double& operator()(unsigned int i, unsigned int j);
+    virtual double& operator()(unsigned int i, unsigned int j);
     /// Const access operator
-    double operator()(unsigned int i, unsigned int j) const;
+    virtual double operator()(unsigned int i, unsigned int j) const;
+    /// set size for matrix
+    virtual void resize(unsigned int m, unsigned int n) { }
     
     /// Sort data by row
     void sort();
     /// Prepare solver
-    void setupSolver();
+    virtual void setupSolver();
     /// Solve Ax = b. Resizes x as needed.
-    void solve(vector<double>& x, const vector<double>& b);
+    virtual void solve(vector<double>& x, const vector<double>& b);
     
     /// Multiply b = Ax; resizes x as needed.
-    void mul(vector<double>& b, const vector<double>& x);
+    virtual void mul(vector<double>& b, const vector<double>& x);
     
-    void display() const { printf("Sparse (%i x %i) matrix with %zu entries.\n", mmax, nmax, Ai.size()); }
+    virtual void display() const { printf("UmfSparse (%i x %i) matrix with %zu entries.\n", mmax, nmax, Ai.size()); }
     
 protected:
+    
+    unsigned int mmax = 0;
+    unsigned int nmax = 0;
+    
     vector<int> Ai;             ///< row indices
     vector<int> Aj;             ///< column indices
     vector<double> Ax;          ///< value at row/column
@@ -43,7 +46,6 @@ protected:
     bool is_sorted = false;     ///< whether data arrays are in sorted order
     
     map< pair<int, int>, int > index;
-    unsigned int mmax, nmax;
     void* Symbolic = NULL;
     void* Numeric = NULL;
 };

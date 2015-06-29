@@ -23,6 +23,10 @@ if ( NOT CGAL_FOUND )
   return()  
 endif()
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+find_package(Eigen3 REQUIRED)
+message(STATUS "Found Eigen3 include dir '${EIGEN3_INCLUDE_DIR}'.")
+ 
 # include helper file
 include( ${CGAL_USE_FILE} )
 
@@ -35,23 +39,31 @@ if ( NOT Boost_FOUND )
   return()
 endif()
 
+find_package( TBB )
+if( TBB_FOUND )
+    include(${TBB_USE_FILE})
+    list(APPEND CGAL_3RD_PARTY_LIBRARIES ${TBB_LIBRARIES})
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DCGAL_CONCURRENT_MESH_3")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCGAL_CONCURRENT_MESH_3")
+endif()
+
 # include for local directory
 
 # include for local package
-include_directories( BEFORE ../include $ENV{MPMUTILS}/Matrix/ $ENV{MPMUTILS}/Visualization/ )
-link_directories($ENV{MPMUTILS}/Visualization/)
+include_directories(BEFORE ../include $ENV{MPMUTILS}/Matrix/ $ENV{MPMUTILS}/Visualization/ $ENV{MPMUTILS}/GeneralUtils/ ${EIGEN3_INCLUDE_DIR} /usr/include/suitesparse/ )
+link_directories($ENV{MPMUTILS}/Visualization/ $ENV{MPMUTILS}/GeneralUtils/ )
 
 # Creating entries for target: elemesholve
 # ############################
 
-add_executable( elemesholve elemesholve.cc UmfSparse.cc FEMesh.cc )
+add_executable( elemesholve elemesholve.cc CellMatrix.cc EigenSparse.cc FEMesh2.cc FEMesh3.cc FEMesh3Slice.cc GeomDef.cc GeomSetup.cc MeshSlice.cc MeshVis.cc UmfSparse.cc )
 target_compile_features(elemesholve PRIVATE cxx_auto_type)
 
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS elemesholve )
 
 # Link the executable to CGAL and third-party libraries
-target_link_libraries(elemesholve ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} MPMVis GL glut blas umfpack )
+target_link_libraries(elemesholve ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} MPMGeneralUtils MPMVis GL glut blas pthread umfpack cholmod )
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 set(CMAKE_BUILD_TYPE debug)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3 -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3 -Wextra -Wpedantic -Woverloaded-virtual")
