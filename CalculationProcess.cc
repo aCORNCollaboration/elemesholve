@@ -1,3 +1,9 @@
+// This file was produced under the employ of the United States Government,
+// and is consequently in the PUBLIC DOMAIN, free from all provisions of
+// US Copyright Law (per USC Title 17, Section 105).
+// 
+// -- Michael P. Mendenhall, 2015
+
 #include "CalculationProcess.hh"
 #include <stdio.h>
 
@@ -8,12 +14,12 @@ GW(G.theWorld),
 RadiusMesh(G.theWorld, 0.5),
 domain(GW, G.theWorld->myBounds, 1e-6),
 edge_criterea(RadiusMesh),
-facet_criteria(15,           // angle bound
+facet_criteria(29,           // angle bound
                RadiusMesh,   // radius bound field
                2e-3,         // distance bound
                CGAL::FACET_VERTICES_ON_SURFACE ),     // facet topology requirement
                //CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK ),
-cell_criteria(5,              // radius-edge ratio
+cell_criteria(3,              // radius-edge ratio
               RadiusMesh),      // sizing field
 criteria(edge_criterea, facet_criteria, cell_criteria)
 {

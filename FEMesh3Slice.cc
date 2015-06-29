@@ -76,7 +76,7 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
         d->addChild(lg);
         
         SVG::group* g = new SVG::group();
-        g->attrs["style"]="stroke:black;stroke-opacity:0.15";
+        g->attrs["style"]="stroke:black;stroke-opacity:0.15;stroke-linejoin:round";
         s.addChild(g);
         
         for(auto it = slice.faces_begin(); it != slice.faces_end(); it++) {
@@ -91,28 +91,32 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
             }
             else z = sqrt(z/grsq_max);
             
-            double w =  0.05*pow(C.area(), 1./3.);
+            double w =  0.05*pow(C.area(), 1./3.);      // stroke width scales with (cell volume)^1/3 ~ cell width
             SVG::polygon* p = new SVG::polygon("fill:#"+color::rgb(G.hsvcolor(z)).asHexString()+";stroke-width:"+to_str(w));
-            int nvtx = 0;
+            size_t nOutside = 0;
             do {
                 h1 = h1->next();
                 K::Point_3 pvtx = h1->vertex()->point();
-                for(int i=0; i<2; i++) vtxpt[i] = pdotv(pvtx,pcoords[i]);
-                if(vtxpt[0]*vtxpt[0] + vtxpt[1]*vtxpt[1] > vis_rmax2) break;
-                
-                BB.expand(vtxpt);
+                for(int i=0; i<2; i++) vtxpt[i] = pdotv(pvtx,pcoords[i]) - vis_center[i];
+                if(vtxpt[0]*vtxpt[0] + vtxpt[1]*vtxpt[1] > vis_rmax2) nOutside++;
                 p->addpt(vtxpt[0], vtxpt[1]);
-                nvtx++;
-                if(nvtx > 4) break;
+                if(p->pts.size() > 4) break;
             } while(h1 != h0);
-            if(3 <= nvtx && nvtx <= 4)  g->addChild(p);
-            else { delete p; }
+            
+            if(p->pts.size() <= 4 && ((vis_all_inside && !nOutside) || (!vis_all_inside && nOutside < p->pts.size()))) {
+                for(auto it = p->pts.begin(); it != p->pts.end(); it++) {
+                    vtxpt[0] = it->first;
+                    vtxpt[1] = it->second;
+                    BB.expand(vtxpt);
+                }
+                g->addChild(p);
+            } else { delete p; }
         }
         
+        // gradient scale bar
         SVG::rect* r = new SVG::rect(BB.pos(1.1,0), BB.lo[1], 0.1*BB.dl(0), BB.dl(1));
         s.addChild(r);
         r->attrs["fill"] = lg->idstr();
-        
         vtxpt[0] = BB.pos(1.2,0);
         vtxpt[1] = BB.hi[1];
         BB.expand(vtxpt);

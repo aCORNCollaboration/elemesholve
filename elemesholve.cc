@@ -148,10 +148,10 @@ void meshgen_test() {
     */
     
     MSx.calc_vtxvals(*CP.M);
-    MSx.vis_rmax2 = 0.07;
+    //MSx.vis_rmax2 = 0.07;
     MSx.write_svg("slice_x.svg",*CP.M);
     MSy.calc_vtxvals(*CP.M);
-    MSy.vis_rmax2 = 0.07;
+    //MSy.vis_rmax2 = 0.07;
     MSy.write_svg("slice_y.svg",*CP.M);
     
     vsr::startRecording(true);

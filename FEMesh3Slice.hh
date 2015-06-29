@@ -31,7 +31,9 @@ public:
     void write_svg(const string& fname, const FEMesh3& F) const;
     
     bool color_logz = true;
-    double vis_rmax2 = DBL_MAX;
+    double vis_rmax2 = DBL_MAX;         ///< radius^2 of SVG visualization view
+    double vis_center[2] = {0,0};       ///< center of SVG visualization view
+    bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some
     
 protected:
     map<MS_HDS::Vertex_handle, double> vtxvals;                 ///< function values at plane intersection vertices
