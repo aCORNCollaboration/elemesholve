@@ -98,13 +98,15 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
                 h1 = h1->next();
                 K::Point_3 pvtx = h1->vertex()->point();
                 for(int i=0; i<2; i++) vtxpt[i] = pdotv(pvtx,pcoords[i]);
+                if(vtxpt[0]*vtxpt[0] + vtxpt[1]*vtxpt[1] > vis_rmax2) break;
+                
                 BB.expand(vtxpt);
                 p->addpt(vtxpt[0], vtxpt[1]);
                 nvtx++;
                 if(nvtx > 4) break;
             } while(h1 != h0);
-            if(nvtx <= 4)  g->addChild(p);
-            else { cout << "*"; delete p; }
+            if(3 <= nvtx && nvtx <= 4)  g->addChild(p);
+            else { delete p; }
         }
         
         SVG::rect* r = new SVG::rect(BB.pos(1.1,0), BB.lo[1], 0.1*BB.dl(0), BB.dl(1));

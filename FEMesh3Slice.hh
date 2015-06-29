@@ -11,6 +11,7 @@
 #include "FEMesh3.hh"
 #include <string>
 using std::string;
+#include <cfloat>
 
 /// Slice through a 3D finite element calculation mesh
 class FEMesh3Slice: public MeshSlice {
@@ -30,6 +31,7 @@ public:
     void write_svg(const string& fname, const FEMesh3& F) const;
     
     bool color_logz = true;
+    double vis_rmax2 = DBL_MAX;
     
 protected:
     map<MS_HDS::Vertex_handle, double> vtxvals;                 ///< function values at plane intersection vertices
