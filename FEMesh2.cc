@@ -85,7 +85,7 @@ void MeshBoundaryConditions2::calc_bvals(const CDT& cdt) {
 
 FEMesh2::FEMesh2(CDT& M): FEMeshSolver(new UmfSparse(), new UmfSparse()) {
     // calculate face geometry factors
-    CellVertices<2> CV;
+    CellVertices<2,double> CV;
     for(auto fit = M.finite_faces_begin(); fit != M.finite_faces_end(); ++fit) {
         if(!fit->is_in_domain()) continue;
         trcells[fit] = cells.size();

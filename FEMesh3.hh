@@ -26,7 +26,7 @@ public:
     /// Get CellMatrix corresponding to triangulation cell
     const CM& getCell(const Tr::Cell_handle& C) const;
     
-    /// write binary mesh data to file in SimplexMesh.hh format
+    /// write binary mesh data to file in SimplexMesh<3,float> format
     void write(ostream& o) const;
     
 protected:

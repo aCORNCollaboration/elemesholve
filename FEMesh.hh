@@ -28,7 +28,7 @@ public:
 template<size_t D, typename vtx_id>
 class FEMeshSolver {
 public:
-    typedef CellMatrixV<D,vtx_id> CM;
+    typedef CellMatrixV<D,double,vtx_id> CM;
     typedef MeshBoundaryConditions<vtx_id> MBC;
     
     /// specify list of vertex ID's to fix as boundary points; set up corresponding matrices.

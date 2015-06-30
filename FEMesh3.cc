@@ -11,7 +11,7 @@
 FEMesh3::FEMesh3(C3t3& M, const CoordinateTransform* T): 
 FEMeshSolver(new EigenSparse(), new EigenSparse()) {
     // calculate face geometry factors
-    CellVertices<3> CV;
+    CellVertices<3,double> CV;
     for(auto it = M.cells_in_complex_begin(); it != M.cells_in_complex_end(); it++) {
         trcells[it] = cells.size();
         cells.push_back(CM());
@@ -49,10 +49,10 @@ void FEMesh3::dump_vertex_position(const Tr::Vertex_handle v, ostream& o) const 
 void FEMesh3::write(ostream& o) const {
     cout << "Outputting solved mesh...\n";
     // vertices
-    int64_t n = vxnums().size();
+    int32_t n = vxnums().size();
     o.write((char*)&n, sizeof(n));
-    map<Tr::Vertex_handle,int64_t> vtxenum;
-    double vx[4];
+    map<Tr::Vertex_handle,int32_t> vtxenum;
+    float vx[4];
     n = 0;
     for(auto it = vxnums().begin(); it !=  vxnums().end(); it++) {
         vtxenum[it->first] = n++;
@@ -66,7 +66,7 @@ void FEMesh3::write(ostream& o) const {
     // cells
     n = getCells().size();
     o.write((char*)&n, sizeof(n));
-    int64_t vxi[4];
+    int32_t vxi[4];
     for(auto it = getCells().begin(); it !=  getCells().end(); it++) {
         for(int i=0; i<4; i++) vxi[i] = vtxenum[it->v_ID[i]];
         o.write((char*)vxi, 4*sizeof(vxi[0]));

@@ -18,16 +18,17 @@ using std::ostream;
 using std::istream;
 using std::pair;
 using std::cout;
+#include <ctime>
 
 /// Mesh vertex data structure with file I/O
-template<size_t D>
+template<size_t D, typename val_tp>
 class MeshVertex {
 public:
     /// Constructor
     MeshVertex() { }
     
-    double x[D];                ///< vertex position
-    double v;                   ///< vertex value
+    val_tp x[D];                ///< vertex position
+    val_tp v;                   ///< vertex value
     
     /// load from file
     void read(istream& is) {
@@ -37,20 +38,20 @@ public:
 };
 
 ///  Mesh cell with adjacency information
-template<size_t D>
-class MeshCell: public CellMatrixV<D,int64_t> {
+template<size_t D, typename val_tp>
+class MeshCell: public CellMatrixV<D,val_tp,int32_t> {
 public:
     /// Constructor
     MeshCell() { }
-    size_t c_ID[D+1];   ///< adjacent cells
-    double vmid[D];     ///< midcentroid position
+    int32_t c_ID[D+1];  ///< adjacent cells
+    val_tp vmid[D];     ///< midcentroid position
     
     /// load from file
-    void read(istream& is) { is.read((char*)CellMatrixV<D,int64_t>::v_ID, (D+1)*sizeof(CellMatrixV<D,int64_t>::v_ID[0])); }
+    void read(istream& is) { is.read((char*)CellMatrixV<D,val_tp,int32_t>::v_ID, (D+1)*sizeof(CellMatrixV<D,val_tp,int32_t>::v_ID[0])); }
 };
 
 /// Triangular/tetrahedral mesh data structure with simple point location and file I/O
-template<size_t D>
+template<size_t D, typename val_tp>
 class SimplexMesh {
 public:
     /// Constructor
@@ -60,10 +61,10 @@ public:
     void read(istream& is);
     
     /// locate cell containing point
-    size_t locate_cell(const double* x, size_t start) const;  
+    size_t locate_cell(const val_tp* x, size_t start) const;  
     
-    vector< MeshVertex<D> > vertices;   ///< mesh vertices
-    vector< MeshCell<D> > cells;        ///< mesh cells
+    vector< MeshVertex<D,val_tp> > vertices;   ///< mesh vertices
+    vector< MeshCell<D,val_tp> > cells;        ///< mesh cells
     int verbose = 1;    ///< debugging verbosity level
     
 protected:
@@ -84,25 +85,29 @@ protected:
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-template<size_t D>
-void SimplexMesh<D>::read(istream& is) {
+template<size_t D, typename val_tp>
+void SimplexMesh<D, val_tp>::read(istream& is) {
+    
+    if(verbose > 1) cout << "Vertex = " << sizeof(MeshVertex<D, val_tp>) << " bytes; cell = " << sizeof(MeshCell<D, val_tp>) << " bytes.\n";
+    clock_t startTime = clock();
+    
     // load vertices
-    int64_t nvertices;
+    int32_t nvertices;
     is.read((char*)&nvertices, sizeof(nvertices));
     if(verbose) cout << "Loading " << nvertices << " vertices..." << std::endl;
     vertices.resize(nvertices);
-    for(int64_t i=0; i<nvertices; i++) vertices[i].read(is);
+    for(int32_t i=0; i<nvertices; i++) vertices[i].read(is);
     
     // load cells; re-calculate and re-construct adjacency information
-    CellVertices<D> CV;
-    typename SimplexMesh<D>::face_ID cellfaces[D+1];
-    int64_t ncells;
+    CellVertices<D,val_tp> CV;
+    typename SimplexMesh<D, val_tp>::face_ID cellfaces[D+1];
+    int32_t ncells;
     is.read((char*)&ncells, sizeof(ncells));
     if(verbose) cout << "Loading " << ncells << " cells..." << std::endl;
     cells.resize(ncells);
     size_t npaired = 0;
-    for(int64_t c=0; c<ncells; c++) {       // cell cell_ID
-        MeshCell<D>& C = cells[c];
+    for(int32_t c=0; c<ncells; c++) {       // cell cell_ID
+        MeshCell<D, val_tp>& C = cells[c];
         C.read(is);
         for(size_t i=0; i<D+1; i++) {       // vertex number in cell
             size_t vn = C.v_ID[i];          // global vertex v_ID
@@ -121,7 +126,7 @@ void SimplexMesh<D>::read(istream& is) {
             } else {
                 C.c_ID[i] = it->second.first;           // set adjacent c_ID
                 assert(C.c_ID[i] < c);                  // check valid paired cell
-                MeshCell<D>& C2 = cells[C.c_ID[i]];     // the adjacent cell
+                MeshCell<D, val_tp>& C2 = cells[C.c_ID[i]];     // the adjacent cell
                 C2.c_ID[it->second.second] = c;         // set adjacent c_ID
                 npaired++;
                 adj_cell.erase(it);
@@ -133,10 +138,13 @@ void SimplexMesh<D>::read(istream& is) {
     }
     
     if(verbose) cout << "Loading complete; " << npaired << " paired and " << adj_cell.size() << " unpaired faces." << std::endl;
+    
+    clock_t endTime = clock();
+    if(verbose > 1) cout << "Data loaded in " << (endTime - startTime)/float(CLOCKS_PER_SEC) << " seconds.\n";
 }
 
-template<size_t D>
-size_t SimplexMesh<D>::locate_cell(const double* x, size_t start) const {
+template<size_t D, typename val_tp>
+size_t SimplexMesh<D, val_tp>::locate_cell(const val_tp* x, size_t start) const {
     return 0;   // TODO
 }
 
