@@ -21,9 +21,14 @@ public:
     /// Destructor
     ~FEMesh3();
     
+    /// Get CellMatrix corresponding to triangulation cell
+    const CM& getCell(const Tr::Cell_handle& C) const;
+    
 protected:
     /// vertex position dump subroutine
     virtual void dump_vertex_position(const Tr::Vertex_handle, ostream& o) const;
+    /// map from Tr cell to CellMatrix
+    map<Tr::Cell_handle, size_t> trcells;
 };
 
 #endif

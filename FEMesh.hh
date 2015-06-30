@@ -43,8 +43,6 @@ public:
     void dump_vertices(ostream& o) const;
     /// dump solved values at cell centers to file
     void dump_centers(ostream& o) const;
-    /// find CellMatrix entry
-    const CM& getCell(void* C) const;
     
 protected:
     /// Constructor protected; make subclass for filling out cells array.
@@ -53,17 +51,15 @@ protected:
     /// vertex position dump subroutine
     virtual void dump_vertex_position(const vtx_id v, ostream& o) const = 0;
     
-    map<void*, CM > cells;              ///< mesh cell geometry calculations, indexed by underlying cell pointer
+    vector<CM> cells;                   ///< mesh cell geometry calculations
     size_t nbound;                      ///< number of bound degrees of freedom
     size_t nfree;                       ///< number of free degrees of freedom
     
     map<vtx_id, int> vertex_enum;       ///< vertices, enumerated for matrix index
    
     SparseMatrixBase* K;                ///< free vertices stiffness matrix
-    double Knorm, Kcond;                ///< norm and condition for solution system
     SparseMatrixBase* tK;               ///< ~K boundary DF matrix
     vector<double> tKh;                 ///< RHS forcing terms of system
-    
     vector<double> bvals;               ///< boundary vertex values
     vector<double> cvals;               ///< free vertex values
 };
@@ -100,8 +96,8 @@ void FEMeshSolver<D, vtx_id>::solve() {
     cout << "Setting solution...\n";
     double vv[D+1];
     for(auto it = cells.begin(); it != cells.end(); it++) {
-        for(size_t i = 0; i < D+1; i++) vv[i] = vertex_value(it->second.v_ID[i]);
-        it->second.set_solution(vv);
+        for(size_t i = 0; i < D+1; i++) vv[i] = vertex_value(it->v_ID[i]);
+        it->set_solution(vv);
     }
     cout << "Done.\n";
 }
@@ -153,14 +149,14 @@ void FEMeshSolver<D, vtx_id>::set_boundary_points(const MBC& M) {
         // matrix DF numbers for vertices in cell
         int vnum[D+1];
         for(size_t i=0; i<D+1; i++) {
-            assert(vertex_enum.count(fit->second.v_ID[i]));
-            vnum[i] = vertex_enum[fit->second.v_ID[i]];
+            assert(vertex_enum.count(fit->v_ID[i]));
+            vnum[i] = vertex_enum[fit->v_ID[i]];
         }
         // sum matrix terms
         for(size_t i=0; i<D+1; i++) { // each vertex i
-            if(vnum[i] >= 0) (*K)(vnum[i], vnum[i]) += fit->second.k_ij(i,i);
+            if(vnum[i] >= 0) (*K)(vnum[i], vnum[i]) += fit->k_ij(i,i);
             for(size_t j=i+1; j<D+1; j++) { // each other vertex j in cell with i
-                double kij = fit->second.k_ij(i,j);
+                double kij = fit->k_ij(i,j);
                 if(vnum[j] < 0) {
                     if(vnum[i] >= 0) (*tK)(vnum[i], -vnum[j]-1) += kij;
                 } else if(vnum[i] >= 0) {
@@ -198,16 +194,9 @@ void FEMeshSolver<D, vtx_id>::dump_vertices(ostream& o) const {
 template<size_t D, typename vtx_id>
 void FEMeshSolver<D, vtx_id>::dump_centers(ostream& o) const {
     for(auto it = cells.begin(); it != cells.end(); it++) {
-        for(size_t i = 0; i < D; i++) o << it->second.vmid[i] << "\t";
-        o << it->second.psolved[0] << "\n";
+        for(size_t i = 0; i < D; i++) o << it->vmid[i] << "\t";
+        o << it->psolved[0] << "\n";
     }
-}
-
-template<size_t D, typename vtx_id>
-const CellMatrixV<D, vtx_id>& FEMeshSolver<D, vtx_id>::getCell(void* C) const {
-    auto it = cells.find(C);
-    assert(it != cells.end());
-    return it->second;
 }
 
 #endif

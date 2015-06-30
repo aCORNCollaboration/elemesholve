@@ -11,18 +11,22 @@
 FEMesh3::FEMesh3(C3t3& M, const CoordinateTransform* T): 
 FEMeshSolver(new EigenSparse(), new EigenSparse()) {
     // calculate face geometry factors
+    CellVertices<3> CV;
     for(auto it = M.cells_in_complex_begin(); it != M.cells_in_complex_end(); it++) {
-        CM& C = cells[&*it];
+        trcells[it] = cells.size();
+        cells.push_back(CM());
+        CM& C = cells.back();
         for(int i=0; i<4; i++) {
             C.v_ID[i] = it->vertex(i);
             vertex_enum[C.v_ID[i]] = 0;
             K::Point_3 p = it->vertex(i)->point();
             if(T) p = T->mesh2phys(p);
-            C.v[i][0] = p.x();
-            C.v[i][1] = p.y();
-            C.v[i][2] = p.z();
+            CV.v[i][0] = p.x();
+            CV.v[i][1] = p.y();
+            CV.v[i][2] = p.z();
         }
-        C.calculate();
+        CV.calc_vmid();
+        C.calculate(CV.v);
     }
     cout << "FEMesh3 calculator on " << vertex_enum.size() << " vertices and " << cells.size() << " cells.\n";
 }
@@ -30,6 +34,12 @@ FEMeshSolver(new EigenSparse(), new EigenSparse()) {
 FEMesh3::~FEMesh3() {
     if(K) delete K;
     if(tK) delete tK;
+}
+
+const typename FEMesh3::CM& FEMesh3::getCell(const Tr::Cell_handle& C) const {
+    auto it = trcells.find(C);
+    assert(it != trcells.end());
+    return cells[it->second];
 }
 
 void FEMesh3::dump_vertex_position(const Tr::Vertex_handle v, ostream& o) const {

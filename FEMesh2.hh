@@ -58,6 +58,8 @@ public:
 protected:
     /// vertex position dump subroutine
     virtual void dump_vertex_position(const CDT::Vertex_handle v, ostream& o) const;
+    /// map from triangle to CellMatrix
+    map<CDT::Face_handle, size_t> trcells;
 };
 
 /// demo test of 2D field solver

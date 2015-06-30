@@ -16,7 +16,20 @@ inline int factorial() { return D*factorial<D-1>(); }
 template< >
 inline int factorial<0>() { return 1; }
 
-/// Special matrix for D-dimensional simplex cells plane equations.
+/// Simplex cell vertex coordinates, shifted relative to centroid
+template<size_t D>
+class CellVertices {
+public:
+    CellVertices() { }
+    
+    double v[D+1][D];   ///< vertex coordinates, shifted relative to centroid by calc_vmid()
+    double vmid[D];     ///< cell centroid
+    
+    /// Calculate mid vertex; convert v to offsets relative to mid
+    void calc_vmid();
+};
+
+/// Special matrix calculations det(M), M^-1 for D-dimensional simplex cells plane equations.
 /// For D=3, M =
 /// 1 x1 y1 z1
 /// 1 x2 y2 z2
@@ -27,14 +40,10 @@ class CellMatrix {
 public:
     /// Constructor
     CellMatrix() { }
-    /// Calculate values
-    void calculate();
+    /// Calculate matrix for vertices
+    void calculate(const double v[D+1][D]);
     /// print to stdout
     void display() const;
-    /// value at position x for vertex function i
-    double phi_i(size_t i, const double* x, bool relcenter = false) const;
-    /// value at position x for vertex values y (assumes set_solution called)
-    double phi(const double* x, bool relcenter = false) const;
     /// | grad phi |^2 (assumes set_solution called)
     double maggrad2() const;
     /// cell area
@@ -46,15 +55,9 @@ public:
     /// set "solved" vertex values
     void set_solution(const double* y);
     
-    double v[D+1][D];   ///< vertex coordinates, shifted relative to centroid by calc_vmid()
-    double vmid[D];     ///< cell centroid
     double det;         ///< vertex matrix determinant
     double p[D+1][D+1]; ///< plane equation coefficients matrix = M^{-1}
     double psolved[D+1];///< total plane equation for "solved" vertex values
-    
-protected:
-    /// Calculate mid vertex; convert v to offsets relative to mid
-    void calc_vmid();
 };
 
 /// Cell matrix class with vertex IDs
@@ -78,20 +81,29 @@ class CellMatrixVA: public CellMatrixV<D,vtx_id> {
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 
+template<size_t D>
+void CellVertices<D>::calc_vmid() {
+    for(size_t i=0; i<D; i++) {
+        vmid[i] = 0;
+        for(size_t j=0; j<D+1; j++) vmid[i] += v[j][i];
+        vmid[i] *= 1./(D+1);
+        for(size_t j=0; j<D+1; j++) v[j][i] -= vmid[i];
+    }
+}
 
 template<size_t D>
-double CellMatrix<D>::phi_i(size_t i, const double* x, bool relcenter) const {
-    double y = p[0][i];
-    if(relcenter) for(size_t j=0; j<D; j++) y += p[j+1][i]*x[j];
-    else for(size_t j=0; j<D; j++) y += p[j+1][i]*(x[j]-vmid[j]);
+double phi_i(const CellMatrix<D>& C, size_t i, const double* x, const double* vmid = NULL) {
+    double y = C.p[0][i];
+    if(!vmid) for(size_t j=0; j<D; j++) y += C.p[j+1][i]*x[j];
+    else for(size_t j=0; j<D; j++) y += C.p[j+1][i]*(x[j]-vmid[j]);
     return y;
 }
 
 template<size_t D>
-double CellMatrix<D>::phi(const double* x, bool relcenter) const {
-    double z = psolved[0];
-    if(relcenter) for(size_t i=0; i<D; i++) z += psolved[i+1]*x[i];
-    else for(size_t i=0; i<D; i++) z += psolved[i+1]*(x[i]-vmid[i]);
+double phi(const CellMatrix<D>& C, const double* x, const double* vmid = NULL) {
+    double z = C.psolved[0];
+    if(!vmid) for(size_t i=0; i<D; i++) z += C.psolved[i+1]*x[i];
+    else for(size_t i=0; i<D; i++) z += C.psolved[i+1]*(x[i]-vmid[i]);
     return z;
 }
 
@@ -112,8 +124,8 @@ double CellMatrix<D>::k_ij(size_t i, size_t j) const {
 template<size_t D>
 void CellMatrix<D>::display() const {
     for(size_t i=0; i<D+1; i++) {
-        printf("|\t1");
-        for(size_t j=0; j<D; j++) printf("\t%g", v[i][j]);
+        //printf("|\t1");
+        //for(size_t j=0; j<D; j++) printf("\t%g", v[i][j]);
         printf("\t|\t\t|");
         for(size_t j=0; j<D+1; j++) printf("\t%g", p[i][j]);
         printf("\t|\n");
@@ -125,7 +137,7 @@ void CellMatrix<D>::display() const {
         for(size_t j=0; j<D; j++) printf("%g\t", k_ij(i,j));
         printf("|\n");
     }
-    
+    /*
     printf("{ ");
     for(size_t i=0; i<D+1; i++) {
         printf("{ 1");
@@ -133,16 +145,7 @@ void CellMatrix<D>::display() const {
         printf(" }, ");
     }
     printf("}\n");
-}
-
-template<size_t D>
-void CellMatrix<D>::calc_vmid() {
-    for(size_t i=0; i<D; i++) {
-        vmid[i] = 0;
-        for(size_t j=0; j<D+1; j++) vmid[i] += v[j][i];
-        vmid[i] *= 1./(D+1);
-        for(size_t j=0; j<D+1; j++) v[j][i] -= vmid[i];
-    }
+    */
 }
 
 template<size_t D>
@@ -156,10 +159,10 @@ void CellMatrix<D>::set_solution(const double* y) {
 
 
 template< >
-void CellMatrix<1>::calculate();
+void CellMatrix<1>::calculate(const double v[2][1]);
 template< >
-void CellMatrix<2>::calculate();
+void CellMatrix<2>::calculate(const double v[3][2]);
 template< >
-void CellMatrix<3>::calculate();
+void CellMatrix<3>::calculate(const double v[4][3]);
 
 #endif

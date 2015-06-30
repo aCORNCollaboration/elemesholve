@@ -20,7 +20,7 @@ void FEMesh3Slice::calc_vtxvals(const FEMesh3& F) {
     grsq_min = DBL_MAX;
     grsq_max = 0;
     for(auto it = slice.faces_begin(); it != slice.faces_end(); it++) {
-        double grsq = F.getCell(&*(it->myCell)).maggrad2();
+        double grsq = F.getCell(it->myCell).maggrad2();
         if(grsq < grsq_min) grsq_min = grsq;
         if(grsq > grsq_max) grsq_max = grsq;
     }
@@ -82,7 +82,7 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
         for(auto it = slice.faces_begin(); it != slice.faces_end(); it++) {
             MS_HDS::Halfedge_const_handle h0 = it->halfedge();
             MS_HDS::Halfedge_const_handle h1 = h0;
-            const FEMesh3::CM& C = F.getCell(&*(it->myCell));
+            const FEMesh3::CM& C = F.getCell(it->myCell);
             
             double z = C.maggrad2();
             if(color_logz) {

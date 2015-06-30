@@ -8,9 +8,7 @@
 
 
 template< >
-void CellMatrix<1>::calculate() {
-    calc_vmid();
-    
+void CellMatrix<1>::calculate(const double v[2][1]) {    
     det = v[1][0] - v[0][0];
     p[0][0] = v[1][0]/det;
     p[0][1] = v[0][0]/det;
@@ -19,9 +17,7 @@ void CellMatrix<1>::calculate() {
 }
 
 template< >
-void CellMatrix<2>::calculate() {  
-    calc_vmid();
-
+void CellMatrix<2>::calculate(const double v[3][2]) {
     const size_t P2of3[3][2][2] = { { {1,2}, {2,1} }, { {2,0}, {0,2} }, { {0,1}, {1,0} } };
     int mul = 1;
     det = 0;
@@ -43,9 +39,7 @@ void CellMatrix<2>::calculate() {
 
 
 template< >
-void CellMatrix<3>::calculate() {
-    calc_vmid();
-    
+void CellMatrix<3>::calculate(const double v[4][3]) {
     // index permutation sets for unique 3 of 4 indices excluding 1. 3 even permutations followed by 3 odd.
     const size_t P3of4[4][3][6] = {
         { {1,2,3, 3,2,1},
@@ -78,28 +72,28 @@ void CellMatrix<3>::calculate() {
         { {0,2, 1,0, 2,1},
           {2,0, 0,1, 1,2} } };
         
-        det = 0;
-        int mul = 1;
-        for(size_t i=0; i<4; i++) {
-            p[0][i] = 0;
-            for(size_t n=0; n<6; n++) {
-                p[0][i] += mul * v[P3of4[i][0][n]][0] * v[P3of4[i][1][n]][1] * v[P3of4[i][2][n]][2];
-                if(n==2 || n==5) mul *= -1;
-            }
+    det = 0;
+    int mul = 1;
+    for(size_t i=0; i<4; i++) {
+        p[0][i] = 0;
+        for(size_t n=0; n<6; n++) {
+            p[0][i] += mul * v[P3of4[i][0][n]][0] * v[P3of4[i][1][n]][1] * v[P3of4[i][2][n]][2];
+            if(n==2 || n==5) mul *= -1;
+        }
+        mul *= -1;
+        det += p[0][i];
+    }
+    
+    assert(mul == 1);
+    for(size_t i=0; i<4; i++) {
+        p[0][i] /= det;
+        for(size_t j=0; j<3; j++) p[j+1][i] = 0;
+        for(size_t n=0; n<6; n++) {
+            p[1][i] += -mul * v[P2of4[i][0][n]][1] * v[P2of4[i][1][n]][2];
+            p[2][i] += -mul * v[P2of4[i][0][n]][2] * v[P2of4[i][1][n]][0];
+            p[3][i] += -mul * v[P2of4[i][0][n]][0] * v[P2of4[i][1][n]][1];
             mul *= -1;
-            det += p[0][i];
         }
-        
-        assert(mul == 1);
-        for(size_t i=0; i<4; i++) {
-            p[0][i] /= det;
-            for(size_t j=0; j<3; j++) p[j+1][i] = 0;
-            for(size_t n=0; n<6; n++) {
-                p[1][i] += -mul * v[P2of4[i][0][n]][1] * v[P2of4[i][1][n]][2];
-                p[2][i] += -mul * v[P2of4[i][0][n]][2] * v[P2of4[i][1][n]][0];
-                p[3][i] += -mul * v[P2of4[i][0][n]][0] * v[P2of4[i][1][n]][1];
-                mul *= -1;
-            }
-            for(size_t j=0; j<3; j++) p[j+1][i] /= det;
-        }
+        for(size_t j=0; j<3; j++) p[j+1][i] /= det;
+    }
 }

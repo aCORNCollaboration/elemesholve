@@ -85,16 +85,20 @@ void MeshBoundaryConditions2::calc_bvals(const CDT& cdt) {
 
 FEMesh2::FEMesh2(CDT& M): FEMeshSolver(new UmfSparse(), new UmfSparse()) {
     // calculate face geometry factors
+    CellVertices<2> CV;
     for(auto fit = M.finite_faces_begin(); fit != M.finite_faces_end(); ++fit) {
         if(!fit->is_in_domain()) continue;
-        CM& C = cells[&*fit];
+        trcells[fit] = cells.size();
+        cells.push_back(CM());
+        CM& C = cells.back();
         for(int i=0; i<3; i++) {
             C.v_ID[i] = fit->vertex(i);
             vertex_enum[C.v_ID[i]] = 0;
-            C.v[i][0] = fit->vertex(i)->point().x();
-            C.v[i][1] = fit->vertex(i)->point().y();
+            CV.v[i][0] = fit->vertex(i)->point().x();
+            CV.v[i][1] = fit->vertex(i)->point().y();
         }
-        C.calculate();
+        CV.calc_vmid();
+        C.calculate(CV.v);
     }
     cout << "FEMesh2 calculator on " << vertex_enum.size() << " vertices and " << cells.size() << " faces.\n";
 }
@@ -109,9 +113,10 @@ void FEMesh2::draw() {
     for(auto it = cells.begin(); it != cells.end(); it++) {
         vsr::startLines();
         for(int i=0; i<4; i++) {
-            double z = vertex_value(it->second.v_ID[i%3]);
+            double z = vertex_value(it->v_ID[i%3]);
             if(draw_logz) z = z>0? draw_logz*log(z) : 0;
-            vsr::vertex(vsr::vec3(it->second.v[i%3][0]+it->second.vmid[0], it->second.v[i%3][1]+it->second.vmid[1], z));
+            assert(false); // TODO get vmid back
+            //vsr::vertex(vsr::vec3(it->v[i%3][0]+it->vmid[0], it->v[i%3][1]+it->vmid[1], z));
         }
         vsr::endLines();
     }
