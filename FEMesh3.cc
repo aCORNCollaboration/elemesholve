@@ -8,8 +8,8 @@
 #include "UmfSparse.hh"
 #include "EigenSparse.hh"
 
-FEMesh3::FEMesh3(C3t3& M, const CoordinateTransform* T): 
-FEMeshSolver(new EigenSparse(), new EigenSparse()) {
+FEMesh3::FEMesh3(C3t3& M, const CoordinateTransform* CT): 
+FEMeshSolver(new EigenSparse(), new EigenSparse()), T(CT) {
     // calculate face geometry factors
     CellVertices<3,double> CV;
     for(auto it = M.cells_in_complex_begin(); it != M.cells_in_complex_end(); it++) {
@@ -57,6 +57,7 @@ void FEMesh3::write(ostream& o) const {
     for(auto it = vxnums().begin(); it !=  vxnums().end(); it++) {
         vtxenum[it->first] = n++;
         K::Point_3 p = it->first->point();
+        if(T) p = T->mesh2phys(p);
         vx[0] = p.x();
         vx[1] = p.y();
         vx[2] = p.z();

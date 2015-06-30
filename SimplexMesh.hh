@@ -19,6 +19,7 @@ using std::istream;
 using std::pair;
 using std::cout;
 #include <ctime>
+#include <cfloat>
 
 /// Mesh vertex data structure with file I/O
 template<size_t D, typename val_tp>
@@ -61,11 +62,18 @@ public:
     void read(istream& is);
     
     /// locate cell containing point
-    size_t locate_cell(const val_tp* x, size_t start) const;  
+    size_t locate_cell(const val_tp x[D], int32_t start = -1, unsigned int max_retries = 20) const;  
+    /// mesh walk step, searching for position B; calculates barycentric coordinates up to first negative with crossable face
+    int32_t walk_step(int32_t c0, const val_tp p[D], val_tp bcoords[D+1]) const;
     
-    vector< MeshVertex<D,val_tp> > vertices;   ///< mesh vertices
-    vector< MeshCell<D,val_tp> > cells;        ///< mesh cells
-    int verbose = 1;    ///< debugging verbosity level
+    vector<int32_t> start_cells;        ///< initial guess cells for point location
+    
+    typedef MeshCell<D,val_tp> cell_tp;
+    typedef MeshVertex<D,val_tp> vtx_tp;
+    
+    vector<vtx_tp> vertices;    ///< mesh vertices
+    vector<cell_tp> cells;      ///< mesh cells
+    int verbose = 1;            ///< debugging verbosity level
     
 protected:
     struct face_ID {
@@ -81,14 +89,18 @@ protected:
     map<face_ID, pair<size_t, size_t> > adj_cell;       ///< cell adjacency table to (c_ID, vertex number)
 };
 
+
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+
+
 template<size_t D, typename val_tp>
 void SimplexMesh<D, val_tp>::read(istream& is) {
     
-    if(verbose > 1) cout << "Vertex = " << sizeof(MeshVertex<D, val_tp>) << " bytes; cell = " << sizeof(MeshCell<D, val_tp>) << " bytes.\n";
+    if(verbose > 1) cout << "Vertex = " << sizeof(vtx_tp) << " bytes; cell = " << sizeof(cell_tp) << " bytes.\n";
     clock_t startTime = clock();
     
     // load vertices
@@ -100,14 +112,14 @@ void SimplexMesh<D, val_tp>::read(istream& is) {
     
     // load cells; re-calculate and re-construct adjacency information
     CellVertices<D,val_tp> CV;
-    typename SimplexMesh<D, val_tp>::face_ID cellfaces[D+1];
+    face_ID cellfaces[D+1];
     int32_t ncells;
     is.read((char*)&ncells, sizeof(ncells));
     if(verbose) cout << "Loading " << ncells << " cells..." << std::endl;
     cells.resize(ncells);
     size_t npaired = 0;
     for(int32_t c=0; c<ncells; c++) {       // cell cell_ID
-        MeshCell<D, val_tp>& C = cells[c];
+        cell_tp& C = cells[c];
         C.read(is);
         for(size_t i=0; i<D+1; i++) {       // vertex number in cell
             size_t vn = C.v_ID[i];          // global vertex v_ID
@@ -124,10 +136,10 @@ void SimplexMesh<D, val_tp>::read(istream& is) {
                 adj_cell[cellfaces[i]] = pair<size_t, size_t>(c,i); // save face for future pairing
                 C.c_ID[i] = -1;     // mark as unpaired face
             } else {
-                C.c_ID[i] = it->second.first;           // set adjacent c_ID
-                assert(C.c_ID[i] < c);                  // check valid paired cell
-                MeshCell<D, val_tp>& C2 = cells[C.c_ID[i]];     // the adjacent cell
-                C2.c_ID[it->second.second] = c;         // set adjacent c_ID
+                C.c_ID[i] = it->second.first;   // set adjacent c_ID
+                assert(C.c_ID[i] < c);          // check valid paired cell
+                cell_tp& C2 = cells[C.c_ID[i]]; // the adjacent cell
+                C2.c_ID[it->second.second] = c; // set adjacent c_ID
                 npaired++;
                 adj_cell.erase(it);
             }
@@ -142,10 +154,96 @@ void SimplexMesh<D, val_tp>::read(istream& is) {
     clock_t endTime = clock();
     if(verbose > 1) cout << "Data loaded in " << (endTime - startTime)/float(CLOCKS_PER_SEC) << " seconds.\n";
 }
+/*
+template<size_t D, typename val_tp>
+int32_t SimplexMesh<D, val_tp>::walk_step(int32_t c0, const val_tp p[D], val_tp b[D+1]) const {
+    const cell_tp& C = cells[c0];
+    // cell-centered coordinates
+    val_tp pc[D];
+    for(size_t i=0; i<D; i++) pc[i] = p[i] - C.vmid[i];
+    
+    float r2_min = FLT_MAX;
+    int32_t cbest = -1;
+    bool inside = true;
+    for(size_t i=0; i<D+1; i++) { // coordinates from each vertex
+        b[i] = phi_i<D,val_tp>(C, i, pc);
+        if(b[i] < 0) {
+            inside = false;
+            if(C.c_ID[i] != -1) {
+                const cell_tp& C2 = cells[C.c_ID[i]];
+                float r2 = 0;
+                for(int j=0; j<D; j++) r2 += (p[j]-C2.vmid[j])*(p[j]-C2.vmid[j]);
+                if(r2 < r2_min) {
+                    r2_min = r2;
+                    cbest = C.c_ID[i];
+                }
+            }
+        }
+        if(b[i] > 1) inside = false;
+    }
+    return inside? c0 : cbest;
+}
+*/
 
 template<size_t D, typename val_tp>
-size_t SimplexMesh<D, val_tp>::locate_cell(const val_tp* x, size_t start) const {
-    return 0;   // TODO
+int32_t SimplexMesh<D, val_tp>::walk_step(int32_t c0, const val_tp p[D], val_tp b[D+1]) const {
+    const cell_tp& C = cells[c0];
+    // cell-centered coordinates
+    val_tp pc[D];
+    for(size_t i=0; i<D; i++) pc[i] = p[i] - C.vmid[i];
+    
+    bool inside = true;
+    for(size_t i=0; i<D+1; i++) { // coordinates from each vertex
+        b[i] = phi_i<D,val_tp>(C, i, pc);
+        if(b[i] < 0) {
+            inside = false;
+            if(C.c_ID[i] != -1) return C.c_ID[i];
+        }
+        if(b[i] > 1) inside = false;
+    }
+    return inside? c0 : -1;
+}
+
+template<size_t D, typename val_tp>
+size_t SimplexMesh<D, val_tp>::locate_cell(const val_tp x[D], int32_t start, unsigned int max_retries) const {
+    int ntries = 0;
+    unsigned int n_retries = 0;
+    
+    if(verbose > 2) {
+        cout << "Searching for point";
+        for(int i=0; i<D; i++) cout << "\t" << x[i]; 
+        cout << "\n";
+    }
+    
+    while(n_retries < start_cells.size() || n_retries < max_retries) {
+        if(start == -1) {
+            if(n_retries < start_cells.size()) start = start_cells[n_retries];
+            else start = rand()%cells.size();
+        }
+        n_retries++;
+
+        val_tp b[D+1];
+        while(start != -1) {
+            ntries++;
+            if(verbose > 3) {
+                const cell_tp& C = cells[start];
+                cout << "\t" << start;
+                for(int i=0; i<D; i++) cout << "\t" << x[i]-C.vmid[i];
+                cout << "\n";
+            }
+            int32_t old_cell = start;
+            start = walk_step(old_cell, x, b);
+            if(start == old_cell) {
+                if(verbose > 2) cout << "\tlocated in " << ntries << " steps!\n";
+                return old_cell;
+            }
+        }
+        start = -1;
+        if(verbose > 2) cout << "\tSearch failed! Starting over!\n";
+    }
+    
+    if(verbose > 2) cout << "\tWalk search teminated without result!\n";
+    return -1;
 }
 
 #endif

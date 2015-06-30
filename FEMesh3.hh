@@ -19,7 +19,7 @@ public:
     /// Do-nothing constructor
     FEMesh3() { }
     /// Constructor, from 3D triangulation mesh
-    FEMesh3(C3t3& M, const CoordinateTransform* T = NULL);
+    FEMesh3(C3t3& M, const CoordinateTransform* CT = NULL);
     /// Destructor
     ~FEMesh3();
     
@@ -34,6 +34,8 @@ protected:
     virtual void dump_vertex_position(const Tr::Vertex_handle, ostream& o) const;
     /// map from Tr cell to CellMatrix
     map<Tr::Cell_handle, size_t> trcells;
+    
+    const CoordinateTransform* T;
 };
 
 #endif
