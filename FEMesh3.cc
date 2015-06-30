@@ -45,3 +45,31 @@ const typename FEMesh3::CM& FEMesh3::getCell(const Tr::Cell_handle& C) const {
 void FEMesh3::dump_vertex_position(const Tr::Vertex_handle v, ostream& o) const {
     o << v->point().x() << "\t" << v->point().y() << "\t" << v->point().z();
 }
+
+void FEMesh3::write(ostream& o) const {
+    cout << "Outputting solved mesh...\n";
+    // vertices
+    int64_t n = vxnums().size();
+    o.write((char*)&n, sizeof(n));
+    map<Tr::Vertex_handle,int64_t> vtxenum;
+    double vx[4];
+    n = 0;
+    for(auto it = vxnums().begin(); it !=  vxnums().end(); it++) {
+        vtxenum[it->first] = n++;
+        K::Point_3 p = it->first->point();
+        vx[0] = p.x();
+        vx[1] = p.y();
+        vx[2] = p.z();
+        vx[3] = vertex_value(it->first);
+        o.write((char*)vx, 4*sizeof(vx[0]));
+    }
+    // cells
+    n = getCells().size();
+    o.write((char*)&n, sizeof(n));
+    int64_t vxi[4];
+    for(auto it = getCells().begin(); it !=  getCells().end(); it++) {
+        for(int i=0; i<4; i++) vxi[i] = vtxenum[it->v_ID[i]];
+        o.write((char*)vxi, 4*sizeof(vxi[0]));
+    }
+    cout << "Done.\n";
+}

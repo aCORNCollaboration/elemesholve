@@ -39,6 +39,10 @@ public:
     void solve();
     /// get solved vertex value
     double vertex_value(vtx_id v) const;
+    /// vertex map access
+    const map<vtx_id, int>& vxnums() const { return vertex_enum; }
+    /// cell list access
+    const vector<CM>& getCells() const { return cells; }
     /// dump solved vertex values to file
     void dump_vertices(ostream& o) const;
     /// dump solved values at cell centers to file

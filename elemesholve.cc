@@ -139,13 +139,10 @@ void meshgen_test() {
     endTime = clock();
     cout << "Matrix solution calculated in " << (endTime - startTime)/float(CLOCKS_PER_SEC) << " seconds.\n";
     
-    /*
-    ofstream vtxdump;
-    vtxdump.open ("vtxdump.txt");
-    M.dump_vertices(vtxdump);
-    //M.dump_centers(vtxdump);
-    vtxdump.close();
-    */
+    ofstream meshdump;
+    meshdump.open("mesh.dat", std::ios::out | std::ios::binary);
+    CP.M->write(meshdump);
+    meshdump.close();
     
     MSx.calc_vtxvals(*CP.M);
     //MSx.vis_rmax2 = 0.07;

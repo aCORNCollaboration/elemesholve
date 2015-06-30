@@ -10,6 +10,8 @@
 #include "FEMesh.hh"
 #include "CGAL_Types.hh"
 #include "GeomDef.hh"
+#include <iostream>
+using std::ostream;
 
 /// 3-dimensional solver class
 class FEMesh3: public FEMeshSolver<3, Tr::Vertex_handle> {
@@ -23,6 +25,9 @@ public:
     
     /// Get CellMatrix corresponding to triangulation cell
     const CM& getCell(const Tr::Cell_handle& C) const;
+    
+    /// write binary mesh data to file in SimplexMesh.hh format
+    void write(ostream& o) const;
     
 protected:
     /// vertex position dump subroutine

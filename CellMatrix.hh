@@ -69,14 +69,6 @@ public:
     vtx_id v_ID[D+1];    ///< vertex ID numbers
 };
 
-/// Cell matrix with vertex IDs and adjacent cells
-template<size_t D, typename vtx_id, typename cell_id>
-class CellMatrixVA: public CellMatrixV<D,vtx_id> {
-    /// Constructor
-    CellMatrixVA() { }
-    cell_id c_ID[D+1];
-};
-
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
