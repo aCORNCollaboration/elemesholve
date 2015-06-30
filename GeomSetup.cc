@@ -284,7 +284,7 @@ void EMirrorGeom::calc_bvals(const C3t3& M) {
         for(int i=0; i<4; i++) {
             if(i==it->second) continue;
             C3t3::Vertex_handle vi = it->first->vertex(i);
-            if(bpts.count(&*vi)) continue;
+            if(bpts.count(vi)) continue;
             
             K::Point_3 p = vi->point();
             if(myWorld.T) p = myWorld.T->mesh2phys(p);
@@ -292,12 +292,12 @@ void EMirrorGeom::calc_bvals(const C3t3& M) {
             double rr = p.x()*p.x() + p.y()*p.y();
             bool rinner = rr < 0.98*myWorld.world_rr; // inside outer wall?
             if(!rinner || p.z() > myWorld.WC.gridz + 2*myWorld.WC.thickness) {
-                bpts[&*vi] = 0;                                                                         // grounded wall, can top
+                bpts[vi] = 0;                                                                   // grounded wall, can top
             } else {
-                if(p.z() > myWorld.WC.gridz - 1.01*myWorld.WC.wire_radius) bpts[&*vi] = 0;              // grounded wires, cap
+                if(p.z() > myWorld.WC.gridz - 1.01*myWorld.WC.wire_radius) bpts[vi] = 0;        // grounded wires, cap
                 else if(rr < 1.01*myWorld.MB.mirror_radius2) {
                     double v = myWorld.MB.band_V(p.z());
-                    if(v != DBL_MAX) bpts[&*vi] = v;                                                    // bands
+                    if(v != DBL_MAX) bpts[vi] = v;                                              // bands
                 }
             }
         }
@@ -330,7 +330,7 @@ void SphereTestGeom::calc_bvals(const C3t3& M) {
             C3t3::Vertex_handle vi = it->first->vertex(i);
             K::Point_3 p = vi->point();
             double rr = p.x()*p.x() + p.y()*p.y() + p.z()*p.z();
-            bpts[&*vi] = (rr > rinner*rinner*1.1? 1. : 1./rinner);
+            bpts[vi] = (rr > rinner*rinner*1.1? 1. : 1./rinner);
         }
     }
 }

@@ -28,7 +28,7 @@ public:
     /// Constructor
     C3t3_Vis(const C3t3& C, const CoordinateTransform* CT = NULL, bool di = false);
     
-    void draw(const MeshBoundaryConditions* B = NULL) const;
+    void draw(const MeshBoundaryConditions<Tr::Vertex_handle>* B = NULL) const;
     void print() const;
     
     bool draw_interior;

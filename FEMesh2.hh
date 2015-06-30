@@ -33,7 +33,7 @@ public:
 };
 
 /// Boundary conditions on 2D mesh
-class MeshBoundaryConditions2: public MeshBoundaryConditions {
+class MeshBoundaryConditions2: public MeshBoundaryConditions<CDT::Vertex_handle> {
 public:
     /// Constructor
     MeshBoundaryConditions2() { }
@@ -45,7 +45,7 @@ public:
 };
 
 /// 2-dimensional solver class
-class FEMesh2: public FEMeshSolver<2> {
+class FEMesh2: public FEMeshSolver<2,CDT::Vertex_handle> {
 public:
     /// Constructor, from 2D triangulation mesh
     FEMesh2(CDT& M);
@@ -57,7 +57,7 @@ public:
     double draw_logz = 0;       ///< optional log-z drawing scale
 protected:
     /// vertex position dump subroutine
-    virtual void dump_vertex_position(const void* v, ostream& o) const;
+    virtual void dump_vertex_position(const CDT::Vertex_handle v, ostream& o) const;
 };
 
 /// demo test of 2D field solver

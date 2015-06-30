@@ -76,7 +76,7 @@ void MeshBoundaryConditions2::calc_bvals(const CDT& cdt) {
     for(auto it = bounds.begin(); it != bounds.end(); it++) {
         it->find_refined_boundary(cdt);
         for(auto itv = it->vertices.begin(); itv != it->vertices.end(); itv++) {
-            bpts[&*(*itv)] = it->boundaryValue(*itv) ;
+            bpts[*itv] = it->boundaryValue(*itv) ;
         }
     }
 }
@@ -87,9 +87,9 @@ FEMesh2::FEMesh2(CDT& M): FEMeshSolver(new UmfSparse(), new UmfSparse()) {
     // calculate face geometry factors
     for(auto fit = M.finite_faces_begin(); fit != M.finite_faces_end(); ++fit) {
         if(!fit->is_in_domain()) continue;
-        CellMatrix<2>& C = cells[&*fit];
+        CM& C = cells[&*fit];
         for(int i=0; i<3; i++) {
-            C.v_ID[i] = &*fit->vertex(i);
+            C.v_ID[i] = fit->vertex(i);
             vertex_enum[C.v_ID[i]] = 0;
             C.v[i][0] = fit->vertex(i)->point().x();
             C.v[i][1] = fit->vertex(i)->point().y();
@@ -117,9 +117,8 @@ void FEMesh2::draw() {
     }
 }
 
-void FEMesh2::dump_vertex_position(const void* v, ostream& o) const {
-    CDT::Vertex_handle vv = (CDT::Vertex_handle)v;
-    o << vv->point().x() << "\t" << vv->point().y();
+void FEMesh2::dump_vertex_position(const CDT::Vertex_handle v, ostream& o) const {
+    o << v->point().x() << "\t" << v->point().y();
 }
 
 /////////////////////////////////////////////////////////////

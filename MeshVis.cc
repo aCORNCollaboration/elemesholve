@@ -79,7 +79,7 @@ C3t3_Vis::C3t3_Vis(const C3t3& C, const CoordinateTransform* CT, bool di): draw_
     }
 }
 
-void C3t3_Vis::draw(const MeshBoundaryConditions* B) const {
+void C3t3_Vis::draw(const MeshBoundaryConditions<Tr::Vertex_handle>* B) const {
     cout << "Drawing mesh";
     if(T) cout << " with transform";
     if(B) cout << " with boundary points";
@@ -92,7 +92,7 @@ void C3t3_Vis::draw(const MeshBoundaryConditions* B) const {
     
     if(B && B->bpts.size()) {
         for(auto it = surface.begin(); it != surface.end(); it++) {
-            if(B->bpts.count(&*(it->first)) && B->bpts.count(&*(it->second))) vsr::setColor(1,0,0,0.5);
+            if(B->bpts.count(it->first) && B->bpts.count(it->second)) vsr::setColor(1,0,0,0.5);
             else vsr::setColor(0,0,0,0.1);
             draw_Tr3Edge(*it, T);
         }

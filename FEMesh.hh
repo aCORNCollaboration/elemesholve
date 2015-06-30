@@ -16,52 +16,56 @@ using std::ostream;
 using std::map;
 
 /// base class for specifying mesh boundary conditions
+template<typename vtx_id>
 class MeshBoundaryConditions {
 public:
     /// Constructor
     MeshBoundaryConditions() { }
     
-    map<void*, double> bpts;    ///< boundary points and values by vertex ID
+    map<vtx_id, double> bpts;    ///< boundary points and values by vertex ID
 };
 
-template<size_t D>
+template<size_t D, typename vtx_id>
 class FEMeshSolver {
-public:    
+public:
+    typedef CellMatrixV<D,vtx_id> CM;
+    typedef MeshBoundaryConditions<vtx_id> MBC;
+    
     /// specify list of vertex ID's to fix as boundary points; set up corresponding matrices.
-    void set_boundary_points(const MeshBoundaryConditions& M);
+    void set_boundary_points(const MBC& M);
     /// set boundary values vector, in same order as set_boundary_points(...)
-    void set_boundary_values(const MeshBoundaryConditions& M);
+    void set_boundary_values(const MBC& M);
     /// calculate solution
     void solve();
     /// get solved vertex value
-    double vertex_value(void* v) const;
+    double vertex_value(vtx_id v) const;
     /// dump solved vertex values to file
     void dump_vertices(ostream& o) const;
     /// dump solved values at cell centers to file
     void dump_centers(ostream& o) const;
     /// find CellMatrix entry
-    const CellMatrix<D>& getCell(void* C) const;
+    const CM& getCell(void* C) const;
     
 protected:
     /// Constructor protected; make subclass for filling out cells array.
     FEMeshSolver(SparseMatrixBase* myK = NULL, SparseMatrixBase* mytK = NULL): K(myK), tK(mytK) { }
     
     /// vertex position dump subroutine
-    virtual void dump_vertex_position(const void* v, ostream& o) const = 0;
+    virtual void dump_vertex_position(const vtx_id v, ostream& o) const = 0;
     
-    map<void*, CellMatrix<D> > cells;           ///< mesh cell geometry calculations, indexed by underlying cell pointer
-    size_t nbound;                              ///< number of bound degrees of freedom
-    size_t nfree;                               ///< number of free degrees of freedom
+    map<void*, CM > cells;              ///< mesh cell geometry calculations, indexed by underlying cell pointer
+    size_t nbound;                      ///< number of bound degrees of freedom
+    size_t nfree;                       ///< number of free degrees of freedom
     
-    map<void*, int> vertex_enum;                ///< vertices, enumerated for matrix index
+    map<vtx_id, int> vertex_enum;       ///< vertices, enumerated for matrix index
    
-    SparseMatrixBase* K;                        ///< free vertices stiffness matrix
-    double Knorm, Kcond;                        ///< norm and condition for solution system
-    SparseMatrixBase* tK;                       ///< ~K boundary DF matrix
-    vector<double> tKh;                         ///< RHS forcing terms of system
+    SparseMatrixBase* K;                ///< free vertices stiffness matrix
+    double Knorm, Kcond;                ///< norm and condition for solution system
+    SparseMatrixBase* tK;               ///< ~K boundary DF matrix
+    vector<double> tKh;                 ///< RHS forcing terms of system
     
-    vector<double> bvals;                       ///< boundary vertex values
-    vector<double> cvals;                       ///< free vertex values
+    vector<double> bvals;               ///< boundary vertex values
+    vector<double> cvals;               ///< free vertex values
 };
 
 
@@ -71,8 +75,8 @@ protected:
 
 
 
-template<size_t D>
-void FEMeshSolver<D>::set_boundary_values(const MeshBoundaryConditions& M) {
+template<size_t D, typename vtx_id>
+void FEMeshSolver<D, vtx_id>::set_boundary_values(const MBC& M) {
     cout << "Setting boundary values...\n";
     if(!nbound) { cout << "\ttoo easy without boundary points!\n"; return; }
     assert(M.bpts.size() == nbound);
@@ -82,8 +86,8 @@ void FEMeshSolver<D>::set_boundary_values(const MeshBoundaryConditions& M) {
     for(auto it = tKh.begin(); it != tKh.end(); it++) *it *= -1;
 }
 
-template<size_t D>
-void FEMeshSolver<D>::solve() {
+template<size_t D, typename vtx_id>
+void FEMeshSolver<D, vtx_id>::solve() {
     cout << "Solving system...\n";
     if(nbound && nfree) {
         assert(tKh.size() == nfree);
@@ -102,8 +106,8 @@ void FEMeshSolver<D>::solve() {
     cout << "Done.\n";
 }
 
-template<size_t D>
-double FEMeshSolver<D>::vertex_value(void* v) const {
+template<size_t D, typename vtx_id>
+double FEMeshSolver<D, vtx_id>::vertex_value(vtx_id v) const {
     if(cvals.size() != nfree ||  bvals.size() != nbound) return 0;
     auto it = vertex_enum.find(v);
     assert(it != vertex_enum.end());
@@ -119,8 +123,8 @@ double FEMeshSolver<D>::vertex_value(void* v) const {
 }
 
 
-template<size_t D>
-void FEMeshSolver<D>::set_boundary_points(const MeshBoundaryConditions& M) {
+template<size_t D, typename vtx_id>
+void FEMeshSolver<D, vtx_id>::set_boundary_points(const MBC& M) {
     cout << "Setting " << M.bpts.size() << " fixed boundary points...\n";
     
     // clear prior enumeration
@@ -179,8 +183,8 @@ void FEMeshSolver<D>::set_boundary_points(const MeshBoundaryConditions& M) {
     K->setupSolver();
 }
 
-template<size_t D>
-void FEMeshSolver<D>::dump_vertices(ostream& o) const {
+template<size_t D, typename vtx_id>
+void FEMeshSolver<D, vtx_id>::dump_vertices(ostream& o) const {
     cout << "Dumping " << vertex_enum.size() << " vertices to file...\n";
     for(auto it = vertex_enum.begin(); it != vertex_enum.end(); it++) {
         dump_vertex_position(it->first, o);
@@ -191,16 +195,16 @@ void FEMeshSolver<D>::dump_vertices(ostream& o) const {
     }
 }
 
-template<size_t D>
-void FEMeshSolver<D>::dump_centers(ostream& o) const {
+template<size_t D, typename vtx_id>
+void FEMeshSolver<D, vtx_id>::dump_centers(ostream& o) const {
     for(auto it = cells.begin(); it != cells.end(); it++) {
         for(size_t i = 0; i < D; i++) o << it->second.vmid[i] << "\t";
         o << it->second.psolved[0] << "\n";
     }
 }
 
-template<size_t D>
-const CellMatrix<D>& FEMeshSolver<D>::getCell(void* C) const {
+template<size_t D, typename vtx_id>
+const CellMatrixV<D, vtx_id>& FEMeshSolver<D, vtx_id>::getCell(void* C) const {
     auto it = cells.find(C);
     assert(it != cells.end());
     return it->second;

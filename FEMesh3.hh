@@ -12,7 +12,7 @@
 #include "GeomDef.hh"
 
 /// 3-dimensional solver class
-class FEMesh3: public FEMeshSolver<3> {
+class FEMesh3: public FEMeshSolver<3, Tr::Vertex_handle> {
 public:
     /// Do-nothing constructor
     FEMesh3() { }
@@ -23,7 +23,7 @@ public:
     
 protected:
     /// vertex position dump subroutine
-    virtual void dump_vertex_position(const void* v, ostream& o) const;
+    virtual void dump_vertex_position(const Tr::Vertex_handle, ostream& o) const;
 };
 
 #endif

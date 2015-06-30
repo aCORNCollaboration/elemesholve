@@ -12,7 +12,7 @@
 void FEMesh3Slice::calc_vtxvals(const FEMesh3& F) {
     vtxvals.clear();
     for(auto it = slice.vertices_begin(); it != slice.vertices_end(); it++) {
-        double z = F.vertex_value(&*it->mySeg.first)*(1-it->c) + F.vertex_value(&*it->mySeg.second)*(it->c);
+        double z = F.vertex_value(it->mySeg.first)*(1-it->c) + F.vertex_value(it->mySeg.second)*(it->c);
         vtxvals[it] = z;
     }
 
@@ -82,7 +82,7 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
         for(auto it = slice.faces_begin(); it != slice.faces_end(); it++) {
             MS_HDS::Halfedge_const_handle h0 = it->halfedge();
             MS_HDS::Halfedge_const_handle h1 = h0;
-            const CellMatrix<3>& C = F.getCell(&*(it->myCell));
+            const FEMesh3::CM& C = F.getCell(&*(it->myCell));
             
             double z = C.maggrad2();
             if(color_logz) {

@@ -11,7 +11,7 @@
 #include "FEMesh.hh"
 
 /// Base class for 3D geometry setup
-class GeomSetup: public MeshBoundaryConditions {
+class GeomSetup: public MeshBoundaryConditions<Tr::Vertex_handle> {
 public:
     /// Constructor
     GeomSetup() { }

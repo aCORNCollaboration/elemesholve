@@ -46,7 +46,6 @@ public:
     /// set "solved" vertex values
     void set_solution(const double* y);
     
-    void* v_ID[D+1];    ///< global vertex ID numbers
     double v[D+1][D];   ///< vertex coordinates, shifted relative to centroid by calc_vmid()
     double vmid[D];     ///< cell centroid
     double det;         ///< vertex matrix determinant
@@ -58,7 +57,22 @@ protected:
     void calc_vmid();
 };
 
+/// Cell matrix class with vertex IDs
+template<size_t D, typename vtx_id>
+class CellMatrixV: public CellMatrix<D> {
+public:
+    /// Constructor
+    CellMatrixV() { }
+    vtx_id v_ID[D+1];    ///< vertex ID numbers
+};
 
+/// Cell matrix with vertex IDs and adjacent cells
+template<size_t D, typename vtx_id, typename cell_id>
+class CellMatrixVA: public CellMatrixV<D,vtx_id> {
+    /// Constructor
+    CellMatrixVA() { }
+    cell_id c_ID[D+1];
+};
 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
