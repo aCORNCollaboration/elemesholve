@@ -154,7 +154,7 @@ void SimplexMesh<D, val_tp>::read(istream& is) {
     clock_t endTime = clock();
     if(verbose > 1) cout << "Data loaded in " << (endTime - startTime)/float(CLOCKS_PER_SEC) << " seconds.\n";
 }
-/*
+
 template<size_t D, typename val_tp>
 int32_t SimplexMesh<D, val_tp>::walk_step(int32_t c0, const val_tp p[D], val_tp b[D+1]) const {
     const cell_tp& C = cells[c0];
@@ -183,8 +183,8 @@ int32_t SimplexMesh<D, val_tp>::walk_step(int32_t c0, const val_tp p[D], val_tp 
     }
     return inside? c0 : cbest;
 }
-*/
 
+/*
 template<size_t D, typename val_tp>
 int32_t SimplexMesh<D, val_tp>::walk_step(int32_t c0, const val_tp p[D], val_tp b[D+1]) const {
     const cell_tp& C = cells[c0];
@@ -203,6 +203,7 @@ int32_t SimplexMesh<D, val_tp>::walk_step(int32_t c0, const val_tp p[D], val_tp 
     }
     return inside? c0 : -1;
 }
+*/
 
 template<size_t D, typename val_tp>
 size_t SimplexMesh<D, val_tp>::locate_cell(const val_tp x[D], int32_t start, unsigned int max_retries) const {

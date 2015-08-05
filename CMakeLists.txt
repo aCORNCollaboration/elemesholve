@@ -53,6 +53,20 @@ endif()
 include_directories(BEFORE ../include $ENV{MPMUTILS}/Matrix/ $ENV{MPMUTILS}/Visualization/ $ENV{MPMUTILS}/GeneralUtils/ ${EIGEN3_INCLUDE_DIR} /usr/include/suitesparse/ )
 link_directories($ENV{MPMUTILS}/Visualization/ $ENV{MPMUTILS}/GeneralUtils/ )
 
+#################
+# Documentation with Doxygen
+#################
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc
+        ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen" VERBATIM
+    )
+endif(DOXYGEN_FOUND)
+
+
 # Creating entries for target: elemesholve
 # ############################
 
