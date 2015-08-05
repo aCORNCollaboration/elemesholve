@@ -12,6 +12,7 @@
 #include "MeshVis.hh"
 #include "FEMesh3Slice.hh"
 
+/// Container for classes/steps involved in specific mesh calculation
 class CalculationProcess {
 public:
     CalculationProcess();

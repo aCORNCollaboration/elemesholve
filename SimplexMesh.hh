@@ -69,7 +69,9 @@ public:
     
     vector<int32_t> start_cells;        ///< initial guess cells for point location
     
+    /// shorthand for cell type
     typedef MeshCell<D,val_tp> cell_tp;
+    /// shorthand for vertex type
     typedef MeshVertex<D,val_tp> vtx_tp;
     
     vector<vtx_tp> vertices;    ///< mesh vertices
@@ -77,8 +79,10 @@ public:
     int verbose = 1;            ///< debugging verbosity level
     
 protected:
+    /// cell face ID by vertex numbers
     struct face_ID {
-        size_t vx[D];
+        size_t vx[D];   ///< face vertices
+        /// sorting operator
         bool operator<(const face_ID& r) const {
             for(int i=0; i<D; i++) {
                 if(vx[i] > r.vx[i]) return false;
@@ -86,7 +90,7 @@ protected:
             }
             return false;
         }
-    };                                                  ///< cell face ID by vertex numbers
+    };                                                  
     map<face_ID, pair<size_t, size_t> > adj_cell;       ///< cell adjacency table to (c_ID, vertex number)
 };
 

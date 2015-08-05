@@ -26,10 +26,13 @@ public:
     map<vtx_id, double> bpts;    ///< boundary points and values by vertex ID
 };
 
+/// templatized base class for D-dimensional mesh solver
 template<size_t D, typename vtx_id>
 class FEMeshSolver {
 public:
+    /// shorthand for cell matrix type
     typedef CellMatrixV<D,double,vtx_id> CM;
+    /// shorthand for boundary conditions type
     typedef MeshBoundaryConditions<vtx_id> MBC;
     
     /// specify list of vertex ID's to fix as boundary points; set up corresponding matrices.

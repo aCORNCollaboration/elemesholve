@@ -17,8 +17,8 @@ public:
     /// Constructor
     GeomSetup() { }
     
-    GeomDomainFunction* theWorld = NULL;        /// "world" volume
-    Polylines polylines;                        /// feature-preserving curves
+    GeomDomainFunction* theWorld = NULL;        ///< "world" volume
+    Polylines polylines;                        ///< feature-preserving curves
     
     /// Add feature preservation lines
     void add_features(Mesh_domain& D) const;
@@ -34,10 +34,14 @@ public:
 /// Concentric spheres test geometry
 class SphereTestDomain: public GeomDomainFunction {
 public:
+    /// Constructor
     SphereTestDomain(double r1, double r2): rr1(r1*r1), rr2(r2*r2) { }
+    /// labeling function
     virtual int f(double x, double y, double z) const;
+    /// mesh size function
     virtual double meshsize(double x, double y, double z) const { return 0.01; }
-    double rr1, rr2;
+    double rr1; ///< outer sphere radius
+    double rr2; ///< inner sphere radius
 };
 
 /// Concentric spheres test geometry
@@ -50,7 +54,7 @@ public:
     
     //virtual FT operator()(const K::Point_3& p, const int, const Index&) const;
     
-    double rinner;
+    double rinner;      ///< radius of inner sphere
 };
 
 ////////////////////////////////////////////////////////////////////
@@ -81,8 +85,10 @@ public:
     const double platez;                ///< bottom of grounded plate
 };
 
+/// electrostatic mirror bands geometry
 class MirrorBands {
 public:
+    /// Constructor
     MirrorBands(double zm, bool c = false);
     
     /// recommended meshing radius
@@ -109,6 +115,7 @@ public:
 /// aCORN electrostatic mirror
 class EMirrorWorldVolume: public GeomDomainFunction {
 public:
+    /// Constructor
     EMirrorWorldVolume(const CoordinateTransform* CT = NULL);
     
     /// labeling function
@@ -120,8 +127,8 @@ public:
     /// add mesh-guiding "features" to Polylines list
     virtual void add_features(Polylines& v) const;
     
-    WireCap WC;
-    MirrorBands MB;
+    WireCap WC;         ///< mirror top cap wire grid
+    MirrorBands MB;     ///< mirror bands
     double world_dz;    ///< world volume z half-length
     double world_r;     ///< world volume radius
     double world_rr;    ///< world volume radius^2
@@ -135,7 +142,7 @@ public:
     /// Calculate boundary conditions for mesh
     virtual void calc_bvals(const C3t3& M);
 
-    EMirrorWorldVolume myWorld;
+    EMirrorWorldVolume myWorld; ///< world volume
 };
 
 #endif

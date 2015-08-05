@@ -29,6 +29,7 @@ void MeshBoundary::make_circle(Point ccenter, double r, CDT& cdt, int npts) {
     insert_constraint_poly(vcircle, cdt);
 }
 
+/// check whether vectors are pointing in same direction (within tolerance)
 bool samedirection(const Vec2& a, const Vec2& b, double epsilon = 0.0001) {
     double n = sqrt((a.x()*a.x()+a.y()*a.y())*(b.x()*b.x()+b.y()*b.y()));
     double dd = (a.x()*b.x() + a.y()*b.y())/n;

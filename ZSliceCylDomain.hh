@@ -15,8 +15,8 @@ class GeomSubVolume;
 /// Geometry "world volume" base class
 class ZSliceCylDomain: public GeomDomainFunction {
 public:
+    /// Constructor
     ZSliceCylDomain(const CoordinateTransform* CT = NULL);
-    ~ZSliceCylDomain() { }
     
     /// identify sub-volume containing point
     virtual const GeomSubVolume* findPoint(double x, double y, double z) const;
@@ -39,15 +39,16 @@ public:
     /// print contents summary
     void display() const;
     
-    double world_dz = 1;
-    double world_rr = 1;
-    double world_r = 1;
+    double world_dz = 1;        ///< cylinder z half-length
+    double world_rr = 1;        ///< cylinder radius^2
+    double world_r = 1;         ///< cylinder radius
 };
 
-/// Generic geometry sub-volume of world
 #include <CGAL/Bbox_3.h>
+/// Generic geometry sub-volume of world
 class GeomSubVolume {
 public:
+    /// Constructor
     GeomSubVolume(ZSliceCylDomain* W, GeomSubVolume* P = NULL);
     
     /// return subvolume containing point, or NULL if outside sub-volume
@@ -65,6 +66,7 @@ public:
     int myLabel = 0;                    ///< domain label
 };
 
+/// Spherical sub-volume
 class GeomSphereFunction: public GeomSubVolume {
 public:
     /// Constructor
@@ -76,10 +78,13 @@ public:
     virtual void add_features(Polylines&) const;
     
     double rr;  ///< radius squared
-    double r;   ///< radius
-    double x0, y0, z0; ///< center position
+    double r;   ///< radius    
+    double x0;  ///< center x coordinate
+    double y0;  ///< center y coordinate
+    double z0;  ///< center z coorindate
 };
 
+/// Toroidal sub-volume
 class GeomTorusFunction: public GeomSubVolume {
 public:
     /// Constructor
@@ -114,7 +119,9 @@ public:
     
 protected:
     vector<GeomSubVolume*> contents;    ///< contents for each x slice
-    double x0, y0, z0;                  ///< box center
+    double x0;  ///< center x coordinate
+    double y0;  ///< center y coordinate
+    double z0;  ///< center z coorindate
 };
 
 /// y-directed cylinder
@@ -129,9 +136,12 @@ public:
     /// add mesh-guiding "features" to Polylines list
     virtual void add_features(Polylines& v) const;
     
-    double rr, r;               ///< radius^2, radius
-    double x0, y0, z0;          ///< center coorindate
-    double dy;                  ///< length in y 
+    double rr;          ///< radius^2
+    double r;           ///< radius
+    double x0;          ///< center x coordinate
+    double y0;          ///< center y coordinate
+    double z0;          ///< center z coorindate
+    double dy;          ///< length in y 
 };
 
 /// ring electrode
@@ -144,8 +154,12 @@ public:
     /// add mesh-guiding "features" to Polylines list
     virtual void add_features(Polylines& v) const;
     
-    double ri, ro, rri, rro;    ///< inner, outer radius and radius^2
-    double z0, z1;              ///< z range
+    double ri;  ///< inner radius
+    double ro;  ///< outer radius
+    double rri; ///< inner radius^2
+    double rro; ///< outer radius^2
+    double z0;  ///< start of z range
+    double z1;   ///< end of z range
 };
 
 #endif

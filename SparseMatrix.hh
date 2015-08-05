@@ -41,6 +41,7 @@ public:
     /// Multiply b = Ax; resizes x as needed.
     virtual void mul(vector<double>& b, const vector<double>& x) = 0;
     
+    /// print information about matrix to stdout
     virtual void display() const { printf("Sparse matrix.\n"); }
 };
 
@@ -53,7 +54,7 @@ public:
     double& operator()(unsigned int i, unsigned int j) { return vals[pair<int,int>(i,j)]; }
      
 protected:
-    map< pair<int, int>, double > vals;
+    map< pair<int, int>, double > vals; ///< matrix entries
 };
 
 

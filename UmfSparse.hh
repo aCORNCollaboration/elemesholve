@@ -40,8 +40,8 @@ public:
     
 protected:
     
-    unsigned int mmax = 0;
-    unsigned int nmax = 0;
+    unsigned int mmax = 0;      ///< maximum row index entered
+    unsigned int nmax = 0;      ///< maximum column index entered
     
     vector<int> Ai;             ///< row indices
     vector<int> Aj;             ///< column indices
@@ -50,9 +50,9 @@ protected:
     vector<int> Ap;             ///< sorted row data pointers
     bool is_sorted = false;     ///< whether data arrays are in sorted order
     
-    map< pair<int, int>, int > index;
-    void* Symbolic = NULL;
-    void* Numeric = NULL;
+    map< pair<int, int>, int > index;   ///< index of entry locations in Ax data vector
+    void* Symbolic = NULL;      ///< UMFPACK "symbolic" solver component
+    void* Numeric = NULL;       ///< UMFPACK "numeric" solver component
 };
 
 #endif

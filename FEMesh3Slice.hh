@@ -31,7 +31,7 @@ public:
     /// SVG output of projection colored by |E|
     void write_svg(const string& fname, const FEMesh3& F) const;
     
-    bool color_logz = true;
+    bool color_logz = true;             ///< whether to color by log scale
     double vis_rmax2 = DBL_MAX;         ///< radius^2 of SVG visualization view
     double vis_center[2] = {0,0};       ///< center of SVG visualization view
     bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some

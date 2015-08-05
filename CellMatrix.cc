@@ -7,6 +7,7 @@
 
 #include "CellMatrix.hh"
 
+/// 1-dimensional simplex "matrix" inverse
 template<typename val_tp>
 val_tp calc_minv_1(const val_tp v[2][1], val_tp p[2][2]) {
     val_tp det = v[1][0] - v[0][0];
@@ -17,6 +18,7 @@ val_tp calc_minv_1(const val_tp v[2][1], val_tp p[2][2]) {
     return det;
 }
 
+/// 2-dimensional simplex matrix inverse
 template<typename val_tp>
 val_tp calc_minv_2(const val_tp v[3][2], val_tp p[3][3]) {
     const size_t P2of3[3][2][2] = { { {1,2}, {2,1} }, { {2,0}, {0,2} }, { {0,1}, {1,0} } };
@@ -39,6 +41,7 @@ val_tp calc_minv_2(const val_tp v[3][2], val_tp p[3][3]) {
     return det;
 }
 
+/// 3-dimensional simplex matrix inverse
 template<typename val_tp>
 val_tp calc_minv_3(const val_tp v[4][3], val_tp p[4][4]) {
     // index permutation sets for unique 3 of 4 indices excluding 1. 3 even permutations followed by 3 odd.

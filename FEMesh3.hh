@@ -36,7 +36,7 @@ protected:
     /// map from Tr cell to CellMatrix
     map<Tr::Cell_handle, size_t> trcells;
     
-    const CoordinateTransform* T;
+    const CoordinateTransform* T;       ///< transform between mesh and physical coordinates
 };
 
 #endif

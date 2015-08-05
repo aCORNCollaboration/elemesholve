@@ -22,50 +22,40 @@ using std::set;
 template <class Refs>
 class MS_vertex : public CGAL::HalfedgeDS_vertex_base<Refs, CGAL::Tag_false, K::Point_3> {
 public:
+    /// Constructor
     MS_vertex(Tr3Edge s = Tr3Edge(NULL,NULL)): mySeg(s) { }
     Tr3Edge mySeg;      ///< edge this vertex is located on
     double c = 0;       ///< normalized coordinate between mySeg endpoints
-};
- 
-/// Custom halfedge type with cell edge numbers
-template <class Refs>
-struct MS_halfedge : public CGAL::HalfedgeDS_halfedge_base<Refs> {
-    MS_halfedge() { }
-    int cellface;       ///< face number in cell this edge traverses
 };
 
 /// Custom face type with reference to C3t3 cell
 template <class Refs>
 struct MS_face : public CGAL::HalfedgeDS_face_base<Refs> {
+    /// Constructor
     MS_face() { }    
-    Tr::Cell_handle myCell;
+    Tr::Cell_handle myCell;     ///< cell in 3D mesh associated with this 2D slice face
 };
 
-/// An items type using customized face, edge
+/// Customized face, edge, vertex items
 struct MS_items : public CGAL::HalfedgeDS_items_2 {
     template <class Refs, class Traits>
-    struct Face_wrapper {
-        typedef MS_face<Refs> Face;
-    };
+    struct Face_wrapper { typedef MS_face<Refs> Face; };
     template <class Refs, class Traits>
-    struct Halfedge_wrapper {
-        typedef MS_halfedge<Refs> Halfedge;
-    };
+    struct Halfedge_wrapper { typedef CGAL::HalfedgeDS_halfedge_base<Refs> Halfedge; };
     template <class Refs, class Traits>
-    struct Vertex_wrapper {
-        typedef MS_vertex<Refs> Vertex;
-    };
+    struct Vertex_wrapper { typedef MS_vertex<Refs> Vertex; };
 };
 
 /// A traits struct for MeshSlice halfedges
 struct MS_traits {
-    // arbitrary point type, not used here.
-    typedef int  Point_2;
+    typedef int Point_2; ///< arbitrary point type, not used here.
 };
 
 /// Half-edge data structure type using customized types
 typedef CGAL::HalfedgeDS_default<MS_traits, MS_items> MS_HDS;
+/// Identifier for edge in HDS
 typedef OrderedPair<MS_HDS::Vertex_handle> MSEdge;
+/// convert HDS vertex to visualizer coordinate vector
 inline vsr::vec3 MSVtoV(MS_HDS::Vertex_handle h) { return PtoV(h->point()); }
 
 /// Intersection of 3D mesh with a plane
@@ -81,7 +71,7 @@ public:
     int verbose = 0;    ///< debugging verbosity level
 
 protected:
-    const C3t3& M;
+    const C3t3& M;      ///< mesh being sliced
     
     K::Plane_3 P;               ///< slice plane
     K::Vector_3 pcoords[3];     ///< plane coordinated basis vectors
@@ -111,7 +101,7 @@ protected:
         map<Tr3Edge, MS_HDS::Vertex_handle> intersections;      ///< intersection points, listed by incident vertices
         map<C3t3::Vertex_handle, MS_HDS::Vertex_handle> degenerate_points;  ///< vertices hit by plane
         
-    } myIntersectionHandler;
+    } myIntersectionHandler;    ///< mesh intersection handler
     
     set<Tr::Cell_handle> toProcess;                             ///< potentially intersecting cells yet to be processed
     set<Tr::Cell_handle> foundCells;                            ///< cells already evaluated in meshing process

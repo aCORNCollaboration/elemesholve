@@ -31,15 +31,17 @@ public:
     /// Multiply b = Ax; resizes x as needed.
     virtual void mul(vector<double>& b, const vector<double>& x);
     
+    /// print information about matrix to stdout
     virtual void display() const;
     
 protected:
+    /// internal sparse matrix type to use
     typedef Eigen::SparseMatrix<double> SparseMat;
+    /// internal solver type to use
     typedef Eigen::CholmodSupernodalLLT<SparseMat, Eigen::Upper>  Solver;
     //typedef Eigen::BiCGSTAB<SparseMat>  Solver;
-    SparseMat M;
-    Solver slvr;
+    SparseMat M;        ///< sparse matrix being solved
+    Solver slvr;        ///< solver for sparse matrix
 };
-
 
 #endif

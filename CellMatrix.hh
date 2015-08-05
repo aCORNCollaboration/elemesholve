@@ -12,8 +12,10 @@
 #include <cassert>
 #include <cmath>
 
+/// compile-time factorial definition
 template<size_t D>
 inline int factorial() { return D*factorial<D-1>(); }
+/// compile-time factorial definition, special 0 case
 template< >
 inline int factorial<0>() { return 1; }
 
@@ -31,11 +33,11 @@ public:
 };
 
 /// Special matrix calculations det(M), M^-1 for D-dimensional simplex cells plane equations.
-/// For D=3, M =
-/// 1 x1 y1 z1
-/// 1 x2 y2 z2
-/// 1 x3 y3 z3
-/// 1 x4 y4 z4
+/** For D=3, M =
+    1 x1 y1 z1
+    1 x2 y2 z2
+    1 x3 y3 z3
+    1 x4 y4 z4 */
 template<size_t D, typename val_tp>
 class CellMatrix {
 public:
@@ -51,7 +53,7 @@ public:
     val_tp area() const { return fabs(det/factorial<D>()); }
     /// integral over one phi plane
     val_tp int_phi() const { return fabs(det/factorial<D+1>()); }
-    /// k^{\nu}_{ij} = \int_{cell} \nabla \phi_i \cdot \nabla \phi_j dx
+    /// \f$k^{\nu}_{ij} = \int_{cell} \nabla \phi_i \cdot \nabla \phi_j dx\f$
     val_tp k_ij(size_t i, size_t j) const;
     /// set "solved" vertex values
     void set_solution(const val_tp* y);
@@ -84,6 +86,7 @@ void CellVertices<D, val_tp>::calc_vmid() {
     }
 }
 
+/// calculate cell pyramid basis function \f$\phi_i(x)\f$
 template<size_t D, typename val_tp>
 val_tp phi_i(const CellMatrix<D, val_tp>& C, size_t i, const val_tp* x, const val_tp* vmid = NULL) {
     val_tp y = C.p[0][i];
@@ -92,6 +95,7 @@ val_tp phi_i(const CellMatrix<D, val_tp>& C, size_t i, const val_tp* x, const va
     return y;
 }
 
+/// calculate cell function value \f$\phi(x)\f$
 template<size_t D, typename val_tp>
 val_tp phi(const CellMatrix<D, val_tp>& C, const val_tp* x, const val_tp* vmid = NULL) {
     val_tp z = C.psolved[0];
@@ -152,17 +156,23 @@ void CellMatrix<D, val_tp>::set_solution(const val_tp* y) {
 
 //////////////////////////////////
 
+/// calculation routine for 1D float-valued CellMatrix
 template< >
 void CellMatrix<1,float>::calculate(const float v[2][1]);
+/// calculation routine for 2D float-valued CellMatrix
 template< >
 void CellMatrix<2,float>::calculate(const float v[3][2]);
+/// calculation routine for 3D float-valued CellMatrix
 template< >
 void CellMatrix<3,float>::calculate(const float v[4][3]);
 
+/// calculation routine for 1D double-valued CellMatrix
 template< >
 void CellMatrix<1,double>::calculate(const double v[2][1]);
+/// calculation routine for 2D double-valued CellMatrix
 template< >
 void CellMatrix<2,double>::calculate(const double v[3][2]);
+/// calculation routine for 3D double-valued CellMatrix
 template< >
 void CellMatrix<3,double>::calculate(const double v[4][3]);
 

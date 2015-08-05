@@ -35,6 +35,7 @@ double FEMesh3Slice::get_vtxval(MS_HDS::Vertex_handle h) const {
     return it->second;
 }
 
+/// dot product between 3D point (as vector) and vector
 double pdotv(K::Point_3 p, K::Vector_3 v) {
     return p.x()*v.x() + p.y()*v.y() + p.z()*v.z();
 }
