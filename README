@@ -6,3 +6,44 @@ and is consequently in the PUBLIC DOMAIN, free from all provisions of
 US Copyright Law (per USC Title 17, Section 105).
  
 -- Michael P. Mendenhall, 2015
+
+##########
+# BUILDING
+
+the build process is based on CMake, and can be performed in a separate build directory:
+
+mkdir <build dir>; cd <build dir>
+cmake <code dir>
+make
+make doc
+
+note, building files including the CGAL 3D meshing classes can use
+substantial amounts (>4GB) of memory; be cautious about parallel builds.
+
+##############
+# ORGANIZATION
+
+CGAL is used to initially generate 2D or 3D meshes of domains,
+    through base classes in GeomDef.hh and simulation-specific
+    geometries in GeomSetup.hh .
+
+FEMeshSolver is the generic D-dimensional finite element solver.
+The mesh for FEMeshSolver is represented by CellMatrix<D> tetrahedral cells.
+The "backend" SparseMatrix driver (UmfSparse or EigenSparse) 
+    is left for subclasses to define.
+
+FEMeshSolver is subclassed by FEMesh2 and FEMesh3 for 2D and 3D cases,
+    which are responsible for translating the CGAL mesh structures
+    into the CellMatrix list.
+
+MeshSlice calculates the geometry (as a halfedge data structure)
+    of a 2D plane slice through a 3D tetrahedral mesh.
+FEMesh3Slice is a MeshSlice with additional visualization
+    capabilities using FEMesh3 solved vertex information.
+    
+SimplexMesh provides a CGAL-independent description of a "solved"
+    mesh with point location and file I/O. This can be used to
+    export solution results to file and external code.
+This has a shallow dependency list (only CellMatrix),
+    which is easy to compile into external code, e.g.
+    g++ -O3 --std=c++11 -o <output name> <your code>.cc CellMatrix.cc

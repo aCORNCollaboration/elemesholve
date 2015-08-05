@@ -14,7 +14,6 @@ using std::ifstream;
 
 // g++ -O3 --std=c++11 -o meshtrack -DWITH_OPENGL=1 -I${MPMUTILS}/Visualization/ -I${MPMUTILS}/Matrix/ -L${MPMUTILS}/Visualization/ meshtrack.cc CellMatrix.cc -lMPMVis -lGL -lglut -lpthread
 
-
 void* mainThread(void*) {
     
     SimplexMesh<3,float> M;

@@ -23,6 +23,7 @@ inline int factorial<0>() { return 1; }
 template<size_t D, typename val_tp>
 class CellVertices {
 public:
+    /// Constructor
     CellVertices() { }
     
     val_tp v[D+1][D];   ///< vertex coordinates, shifted relative to centroid by calc_vmid()
@@ -32,7 +33,7 @@ public:
     void calc_vmid();
 };
 
-/// Special matrix calculations det(M), M^-1 for D-dimensional simplex cells plane equations.
+/// Special matrix calculations \f$\det(M)\f$, \f$M^{-1}\f$ for D-dimensional simplex cells plane equations.
 /** For D=3, M =
     1 x1 y1 z1
     1 x2 y2 z2
@@ -47,7 +48,7 @@ public:
     void calculate(const val_tp v[D+1][D]);
     /// print to stdout
     void display() const;
-    /// | grad phi |^2 (assumes set_solution called)
+    /// \f$| \nabla \phi |^2\f$ (assumes set_solution called)
     val_tp maggrad2() const;
     /// cell area
     val_tp area() const { return fabs(det/factorial<D>()); }
@@ -59,7 +60,7 @@ public:
     void set_solution(const val_tp* y);
     
     val_tp det;         ///< vertex matrix determinant
-    val_tp p[D+1][D+1]; ///< plane equation coefficients matrix = M^{-1}
+    val_tp p[D+1][D+1]; ///< plane equation coefficients matrix \f$M^{-1}\f$
     val_tp psolved[D+1];///< total plane equation for "solved" vertex values
 };
 
