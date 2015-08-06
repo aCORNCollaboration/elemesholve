@@ -7,6 +7,21 @@ US Copyright Law (per USC Title 17, Section 105).
  
 -- Michael P. Mendenhall, 2015
 
+##############
+# DEPENDENCIES
+
+probably available from your apt-get repository:
+    Boost
+    CGAL (may need to install the latest version from http://www.cgal.org/)
+    Eigen3
+    OpenGL, glut, blas, pthread 
+    SuiteSparse (for UMFPack)
+    
+repository with "helper code" I use between many projects:    
+    MPMUtils https://github.com/mpmendenhall/MPMUtils
+        run 'make' in GeneralUtils/ and Visualization/
+        export MPMUTILS=<MPMUtils base dir>
+    
 ##########
 # BUILDING
 

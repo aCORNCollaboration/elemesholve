@@ -19,7 +19,7 @@ endif()
 find_package( CGAL QUIET COMPONENTS  )
 
 if ( NOT CGAL_FOUND )
-  message(STATUS "This project requires the CGAL library, and will not be compiled.")
+  message(FATAL_ERROR "This project requires the CGAL library, and will not be compiled.")
   return()  
 endif()
 
@@ -35,7 +35,7 @@ include( ${CGAL_USE_FILE} )
 find_package( Boost REQUIRED )
 
 if ( NOT Boost_FOUND )
-  message(STATUS "This project requires the Boost library, and will not be compiled.")
+  message(FATAL_ERROR "This project requires the Boost library, and will not be compiled.")
   return()
 endif()
 
@@ -47,7 +47,15 @@ if( TBB_FOUND )
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCGAL_CONCURRENT_MESH_3")
 endif()
 
-# include for local directory
+if(NOT EXISTS "$ENV{MPMUTILS}")
+    message(FATAL_ERROR "Environment variable MPMUTILS needs to point to an MPMUtils install.")
+    return()
+endif()
+
+if(NOT EXISTS "/usr/include/suitesparse/")
+    message(FATAL_ERROR "Missing '/usr/include/suitesparse/'.")
+    return()
+endif()
 
 # include for local package
 include_directories(BEFORE ../include $ENV{MPMUTILS}/Matrix/ $ENV{MPMUTILS}/Visualization/ $ENV{MPMUTILS}/GeneralUtils/ ${EIGEN3_INCLUDE_DIR} /usr/include/suitesparse/ )
