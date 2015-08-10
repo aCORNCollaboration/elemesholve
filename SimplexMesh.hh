@@ -63,7 +63,7 @@ public:
     void read(istream& is);
     
     /// locate cell containing point
-    size_t locate_cell(const val_tp x[D], int32_t start = -1, unsigned int max_retries = 20) const;  
+    int32_t locate_cell(const val_tp x[D], int32_t start = -1, unsigned int max_retries = 20) const;  
     /// mesh walk step, searching for position B; calculates barycentric coordinates up to first negative with crossable face
     int32_t walk_step(int32_t c0, const val_tp p[D], val_tp bcoords[D+1]) const;
     
@@ -118,6 +118,7 @@ void SimplexMesh<D, val_tp>::read(istream& is) {
     // load cells; re-calculate and re-construct adjacency information
     CellVertices<D,val_tp> CV;
     face_ID cellfaces[D+1];
+    val_tp vtxvals[D+1];
     int32_t ncells;
     is.read((char*)&ncells, sizeof(ncells));
     if(verbose) cout << "Loading " << ncells << " cells..." << std::endl;
@@ -129,7 +130,8 @@ void SimplexMesh<D, val_tp>::read(istream& is) {
         for(size_t i=0; i<D+1; i++) {       // vertex number in cell
             size_t vn = C.v_ID[i];          // global vertex v_ID
             assert(vn < vertices.size());   // check valid v_ID
-            for(size_t j=0; j<D; j++) CV.v[i][j] = vertices[vn].x[j];       // collect vertex positions
+            for(size_t j=0; j<D; j++) CV.v[i][j] = vertices[vn].x[j];   // collect vertex positions
+            vtxvals[i] = vertices[vn].v;                                // collect vertex value
             for(size_t j=0; j<D+1; j++) {   // record opposing cell face vertices
                 if(j==i) continue;
                 cellfaces[i].vx[j>i?j-1:j] = C.v_ID[j];
@@ -152,6 +154,7 @@ void SimplexMesh<D, val_tp>::read(istream& is) {
         CV.calc_vmid();          // midcentroid
         for(size_t j=0; j<D; j++) C.vmid[j] = CV.vmid[j];
         C.calculate(CV.v);      // cell matrix
+        C.set_solution(vtxvals);// set vertex values
     }
     
     if(verbose) cout << "Loading complete; " << npaired << " paired and " << adj_cell.size() << " unpaired faces." << std::endl;
@@ -211,7 +214,7 @@ int32_t SimplexMesh<D, val_tp>::walk_step(int32_t c0, const val_tp p[D], val_tp 
 */
 
 template<size_t D, typename val_tp>
-size_t SimplexMesh<D, val_tp>::locate_cell(const val_tp x[D], int32_t start, unsigned int max_retries) const {
+int32_t SimplexMesh<D, val_tp>::locate_cell(const val_tp x[D], int32_t start, unsigned int max_retries) const {
     int ntries = 0;
     unsigned int n_retries = 0;
     

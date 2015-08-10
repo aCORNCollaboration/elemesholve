@@ -1,4 +1,4 @@
-/// \file CellMatrix.hh
+/// \file CellMatrix.hh D-dimensional simplex (D=1,2,3) plane equations and linear interpolation
 // This file was produced under the employ of the United States Government,
 // and is consequently in the PUBLIC DOMAIN, free from all provisions of
 // US Copyright Law (per USC Title 17, Section 105).
@@ -98,7 +98,7 @@ val_tp phi_i(const CellMatrix<D, val_tp>& C, size_t i, const val_tp* x, const va
 
 /// calculate cell function value \f$\phi(x)\f$
 template<size_t D, typename val_tp>
-val_tp phi(const CellMatrix<D, val_tp>& C, const val_tp* x, const val_tp* vmid = NULL) {
+val_tp phi_tot(const CellMatrix<D, val_tp>& C, const val_tp* x, const val_tp* vmid = NULL) {
     val_tp z = C.psolved[0];
     if(!vmid) for(size_t i=0; i<D; i++) z += C.psolved[i+1]*x[i];
     else for(size_t i=0; i<D; i++) z += C.psolved[i+1]*(x[i]-vmid[i]);

@@ -8,11 +8,32 @@
 #include "SimplexMesh.hh"
 #include <fstream>
 using std::ifstream;
+using std::ofstream;
 #include <unistd.h>
 
 #include "Visr.hh"
 
 // g++ -O3 --std=c++11 -o meshtrack -DWITH_OPENGL=1 -I${MPMUTILS}/Visualization/ -I${MPMUTILS}/Matrix/ -L${MPMUTILS}/Visualization/ meshtrack.cc CellMatrix.cc -lMPMVis -lGL -lglut -lpthread
+
+void scan_line(SimplexMesh<3,float>& M, const float x0[3], const float x1[3], unsigned int n, ostream& o) {
+    int32_t c = M.locate_cell(x0);
+    float x[3];
+    for(unsigned int i=0; i<n; i++) {
+        float l = float(i)/(n-1);
+        for(int j=0; j<3; j++) x[j] = x0[j]*(1-l) + x1[j]*l;
+        c = M.locate_cell(x,c);
+        if(c==-1) {
+            cout << "Tracking failed at " << x[0] << ", " << x[1] << ", " << x[2] << " !\n";
+            return;
+        }
+        const SimplexMesh<3,float>::cell_tp& C = M.cells[c];
+        float phi = phi_tot(C, x, C.vmid);
+        o << x[0] << "\t" << x[1] << "\t" << x[2] << "\t" << phi;
+        for(int j=0; j<3; j++) o << "\t" << C.psolved[j+1];
+        o << "\n";
+    }
+}
+
 
 void* mainThread(void*) {
     
@@ -24,6 +45,25 @@ void* mainThread(void*) {
     
     float x[3] = {0,0,0};
     M.start_cells.push_back(M.locate_cell(x));
+    x[2] = -9.5;
+    M.start_cells.push_back(M.locate_cell(x));
+    x[2] = 9.5;
+    M.start_cells.push_back(M.locate_cell(x));
+    
+    M.verbose = 0;
+    ofstream o("../elemesholve-bld/scan.txt");
+    float x0[3] = { 0, 0, -5 };
+    float x1[3] = { 0, 0, 5 };
+    int nptsr = 11;
+    for(int nr = 0; nr < nptsr; nr++) {
+        x0[0] = x1[0] = nr*4./(nptsr-1);
+        scan_line(M, x0, x1, 101, o);
+    }
+    cout << "Done!\n";
+    vsr::set_kill();
+    return NULL;
+    
+    /*
     x[0] = 9.5; x[1] = 0; x[2] = 9.5;
     M.start_cells.push_back(M.locate_cell(x));
     x[2] = -9.5;
@@ -33,6 +73,7 @@ void* mainThread(void*) {
     x[2] = 9.5;
     M.start_cells.push_back(M.locate_cell(x));
     for(int i=0; i<3; i++) x[i] = 0;
+    */
     
     float dx[3] = {0,0,0};
     float b[4];
