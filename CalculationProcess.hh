@@ -20,7 +20,7 @@ public:
 
     YSqueezeTransform YSQ;                      ///< coordinate transform for coarser meshing along wire length
     SphereTestGeom STG;                         ///< spherical test geometry
-    EMirrorGeom G;                              ///< mirror geometry to mesh
+    EMirrorGeom EMG;                            ///< mirror geometry to mesh
     GeomSetup* myGeom;                          ///< geometry being calculated
     
     GeomDomainFunctionWrapper GW;               ///< wrapper for mesh domain labeling

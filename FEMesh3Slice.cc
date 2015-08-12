@@ -7,6 +7,7 @@
 
 #include "FEMesh3Slice.hh"
 #include "SVGBuilder.hh"
+#include "ProgressBar.hh"
 #include "BBox.hh"
 
 
@@ -18,7 +19,6 @@ void FEMesh3Slice::calc_vtxvals(const FEMesh3& F) {
     }
 
     // find max/min gradients
-    dcmode = PHI;
     grsq_min = DBL_MAX;
     grsq_max = 0;
     for(auto it = slice.faces_begin(); it != slice.faces_end(); it++) {
@@ -58,6 +58,8 @@ public:
         assert(P);
         if(P->pts.size() < 3) return;
         
+        // TODO select best set of 3 vertices from larger number
+        
         for(int i=0; i<3; i++) {
             V.v[i][0] = P->pts[i].first;
             V.v[i][1] = P->pts[i].second;
@@ -92,6 +94,41 @@ public:
     vector<double> vtxz; ///< vertex z info for coloring
 };
 
+/// Color axis
+class SVGGradientAxis {
+public:
+    /// Constructor
+    SVGGradientAxis(SVG::lingradient* lg) {
+        // derived axis gradient
+        Gaxis->attrs["id"] = "Gaxis";
+        Gaxis->attrs["gradientTransform"] = "rotate(-90) translate(-1 0)";
+        Gaxis->attrs["xlink:href"] = "#"+lg->attrs["id"];
+        Gaxis->attrs["gradientUnits"] = "objectBoundingBox";
+        axisGroup->addChild(Gaxis);
+        
+        // gradient rectangle
+        SVG::rect* r = new SVG::rect(0, 0, 0.1, 1);
+        r->attrs["style"] = "fill:url(#" + Gaxis->attrs["id"] + ");stroke:black;stroke-width:0.002";
+        axisGroup->addChild(r);
+        
+        axisGroup->attrs["font-size"] = "0.07";
+    }
+    /// normalize to axis internal coordinates
+    double axisUnits(double x) const { return (x-range.lo[0])/range.dl(0); }
+    
+    /// finalize range; set up text
+    void finalize() {
+        SVG::text* uLabel = new SVG::text(to_str(range.hi[0]), 0.107, 0.);
+        axisGroup->addChild(uLabel);
+        SVG::text* lLabel = new SVG::text(to_str(range.lo[0]), 0.107, 0.93);
+        axisGroup->addChild(lLabel);
+    }
+    
+    BBox<1,double> range = empty_double_bbox<1>();              ///< axis range
+    SVG::group* axisGroup = new SVG::group();                   ///< group containing axis information
+    XMLBuilder* Gaxis = new XMLBuilder("linearGradient");       ///< gradient
+};
+
 void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
     std::ofstream o;
     o.open (fname);
@@ -101,12 +138,13 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
    
     s.addChild(new SVG::title("elemesholve slice"));
     BBox<2,double> BB = empty_double_bbox<2>();
-    BBox<1,double> zrange = empty_double_bbox<1>();
+    
     double vtxpt[2];
     
     bool drawFaces = (grsq_max != grsq_min);
     if(drawFaces) {
         cout << "Drawing " << slice.size_of_faces() << " faces...\n";
+        ProgressBar* PB = new ProgressBar(slice.size_of_faces(), slice.size_of_faces()/20);
         
         // style definitions, with axis gradient
         SVG::defs* d = new SVG::defs();
@@ -121,22 +159,27 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
         SVG::lingradient* lg = new SVG::lingradient(G, "zaxis", 0, 0, 1, 0);
         lg->attrs["gradientUnits"] = "userSpaceOnUse";
         d->addChild(lg);
+        SVGGradientAxis zAxis(lg);
+        s.addChild(zAxis.axisGroup);
         
         // face polygons group
         SVG::group* g = new SVG::group();
-        g->attrs["style"]="stroke:black;stroke-opacity:0.15;stroke-linejoin:round";
+        bool stroke_borders = false;
+        if(stroke_borders) g->attrs["style"]="stroke:black;stroke-opacity:0.15;stroke-linejoin:round";
         s.addChild(g);
         
         vector<SVGFacePoly*> facepoly; // face polygons for color assignment
         vector<double> facez; // z values for (flat) faces
+        int nfaces = 0;
         for(auto it = slice.faces_begin(); it != slice.faces_end(); it++) {
+            PB->update(nfaces++);
             MS_HDS::Halfedge_const_handle h0 = it->halfedge();
             MS_HDS::Halfedge_const_handle h1 = h0;
             const FEMesh3::CM& C = F.getCell(it->myCell);
             
             // the polygon
             double w =  0.05*pow(C.area(), 1./3.);      // stroke width scales with (cell volume)^1/3 ~ cell width
-            SVGFacePoly* p = new SVGFacePoly("stroke-width:"+to_str(w));
+            SVGFacePoly* p = new SVGFacePoly(stroke_borders? "stroke-width:"+to_str(w) : "");
             
             // collect polygon points
             size_t nOutside = 0;
@@ -146,7 +189,7 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
                 for(int i=0; i<2; i++) vtxpt[i] = pdotv(pvtx,pcoords[i]) - vis_center[i];
                 if(vtxpt[0]*vtxpt[0] + vtxpt[1]*vtxpt[1] > vis_rmax2) nOutside++;
                 p->addpt(vtxpt[0], vtxpt[1]);
-                p->vtxz.push_back(get_vtxval(h1->vertex()));
+                p->vtxz.push_back(1000*get_vtxval(h1->vertex()));
                 if(p->pts.size() > 4) break;
             } while(h1 != h0);
             
@@ -162,10 +205,10 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
                 double z = C.maggrad2();
                 if(dcmode == LOG_MAG_GRAD) z = log(z < grsq_min? grsq_min : z)/2.;
                 else z = sqrt(z);
-                zrange.expand(&z);
+                zAxis.range.expand(&z);
                 p->vtxz.push_back(z);
             } else if(dcmode == PHI) {
-                for(auto it = p->vtxz.begin(); it != p->vtxz.end(); it++) zrange.expand(&*it);
+                for(auto it = p->vtxz.begin(); it != p->vtxz.end(); it++) zAxis.range.expand(&*it);
             }
             
             // expand image bounding box and insert polygon
@@ -178,9 +221,9 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
             g->addChild(p);
             facepoly.push_back(p);
         }
+        delete PB;
         
         // assign polygon colors by z
-        double dz = zrange.dl(0);
         int nsubgrad = 0;
         for(auto it = facepoly.begin(); it != facepoly.end(); it++) {
             SVGFacePoly* p = *it;
@@ -190,19 +233,20 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
             double zsum = 0;
             double zzsum = 0;
             for(auto itz = p->vtxz.begin(); itz != p->vtxz.end(); itz++) {
-                *itz = (*itz-zrange.lo[0])/dz;
+                *itz = zAxis.axisUnits(*itz);
                 zsum += *itz;
                 zzsum += (*itz)*(*itz);
             }
             zsum /= p->vtxz.size();
             zzsum /= p->vtxz.size();
-            if(p->vtxz.size() > 1 && zzsum - zsum*zsum < 1e-5) {
+            if(p->vtxz.size() > 1 && sqrt(zzsum - zsum*zsum) < 1e-4) {
                 p->vtxz.resize(1);
                 p->vtxz[0] = zsum;
             }
             // apply flat or gradient fill
             if(p->vtxz.size() == 1) {
-                p->attrs["style"] += ";fill:#"+color::rgb(G.hsvcolor(p->vtxz[0])).asHexString();
+                if(p->attrs.count("style")) p->attrs["style"] += ";";
+                p->attrs["style"] += "fill:#"+color::rgb(G.hsvcolor(p->vtxz[0])).asHexString();
             } else if(p->vtxz.size() >= 3) {
                 PolygonPlane PP(p);
                 XMLBuilder* Gi = new XMLBuilder("linearGradient");
@@ -214,21 +258,17 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
                 p->attrs["fill"] = "url(#" + Gi->attrs["id"] + ")";
             }
         }
-       
-        // draw gradient axis
-        XMLBuilder* Gaxis = new XMLBuilder("linearGradient");
-        Gaxis->attrs["id"] = "Gaxis";
-        Gaxis->attrs["gradientTransform"] = "rotate(-90) translate(-1,0)";
-        Gaxis->attrs["xlink:href"] = "#"+lg->attrs["id"];
-        Gaxis->attrs["gradientUnits"] = "objectBoundingBox";
-        d->addChild(Gaxis);
-        SVG::rect* r = new SVG::rect(BB.pos(1.1,0), BB.lo[1], 0.1*BB.dl(0), BB.dl(1));
-        s.addChild(r);
-        r->attrs["fill"] = "url(#" + Gaxis->attrs["id"] + ")";
-        vtxpt[0] = BB.pos(1.2,0);
+        
+        // scale/move axis into position
+        zAxis.finalize();
+        double yscale = BB.dl(1);
+        zAxis.axisGroup->attrs["transform"] = "translate(" + to_str(BB.pos(1.1,0)) + " " + to_str(BB.pos(0.5,1) - 0.5*yscale) + ") scale(" + to_str(yscale) + ")";
+        // expand to final display window
+        vtxpt[0] = BB.pos(1.4,0);
         vtxpt[1] = BB.hi[1];
         BB.expand(vtxpt);
     }
+    
     
     bool drawEdges = !drawFaces;
     if(drawEdges) {

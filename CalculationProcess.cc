@@ -10,9 +10,9 @@
 
 CalculationProcess::CalculationProcess():
 YSQ(0, 10., 0.7),
-G(&YSQ),
+EMG(&YSQ),
 STG(&YSQ),
-myGeom(&STG),
+myGeom(&EMG),
 GW(myGeom->theWorld),
 RadiusMesh(myGeom->theWorld, 0.5),
 domain(GW, myGeom->theWorld->myBounds, 1e-6),
@@ -26,7 +26,7 @@ cell_criteria(3,             // radius-edge ratio
               RadiusMesh),   // sizing field
 criteria(edge_criterea, facet_criteria, cell_criteria)
 {
-    YSQ.z0 = G.myWorld.WC.gridz;
+    YSQ.z0 = EMG.myWorld.WC.gridz;
     myGeom->add_features(domain);
 }
 
