@@ -58,18 +58,38 @@ public:
         assert(P);
         if(P->pts.size() < 3) return;
         
-        // TODO select best set of 3 vertices from larger number
+        if(P->pts.size() == 4) { // try to choose best (largest) triangle for plane calcs
+            size_t ibest = 0;
+            double area_best = 0;
+            for(size_t j=0; j<4; j++) {
+                for(size_t i=0; i<4; i++) if(i != j) vtxnums.push_back(i);
+                for(int i=0; i<3; i++) {
+                    V.v[i][0] = P->pts[vtxnums[i]].first;
+                    V.v[i][1] = P->pts[vtxnums[i]].second;
+                }
+                V.calc_vmid();
+                C.calculate(V.v);
+                vtxnums.clear();
+                double area = C.area();
+                if(area > area_best) { area_best = area; ibest = j; }
+            }
+            for(size_t i=0; i<4; i++) if(i != ibest) vtxnums.push_back(i);
+        } else {
+            for(size_t i=0; i<3; i++) vtxnums.push_back(i);
+        }
         
         for(int i=0; i<3; i++) {
-            V.v[i][0] = P->pts[i].first;
-            V.v[i][1] = P->pts[i].second;
+            V.v[i][0] = P->pts[vtxnums[i]].first;
+            V.v[i][1] = P->pts[vtxnums[i]].second;
         }
         V.calc_vmid();
         C.calculate(V.v);
     }
     /// Determine gradient mapping for corner values
     string gradient_remap(const vector<double>& cornervals) {
-        C.set_solution(cornervals.data());
+        double vtxvals[3];
+        for(int i=0; i<3; i++) vtxvals[i] = cornervals[vtxnums[i]];
+        C.set_solution(vtxvals);
         double gx = C.psolved[1];
         double gy = C.psolved[2];
         double th = atan2(gy,gx)*180./M_PI;   // rotation angle [degrees]
@@ -82,6 +102,7 @@ public:
         return txstr;
     }
     
+    vector<size_t> vtxnums;      ///< vertex numbers selected for plane definition
     CellVertices<2,double> V;    ///< representative triangle
     CellMatrix<2,double> C;      ///< plane equations for the polygon
 };
@@ -152,8 +173,9 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
         
         // rainbow gradient scale bar
         color::Gradient G;
-        for(int i=0; i<=12; i++) {
-            double l = double(i)/12;
+        int ngradstops = 6;
+        for(int i=0; i<ngradstops; i++) {
+            double l = double(i)/(ngradstops-1);
             G.addStop(l, color::hsv((1-l)*1.5*M_PI,1,1));
         }
         SVG::lingradient* lg = new SVG::lingradient(G, "zaxis", 0, 0, 1, 0);
@@ -188,7 +210,7 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
                 K::Point_3 pvtx = h1->vertex()->point();
                 for(int i=0; i<2; i++) vtxpt[i] = pdotv(pvtx,pcoords[i]) - vis_center[i];
                 if(vtxpt[0]*vtxpt[0] + vtxpt[1]*vtxpt[1] > vis_rmax2) nOutside++;
-                p->addpt(vtxpt[0], vtxpt[1]);
+                p->addpt(vtxpt[0]*outcoord_scale, vtxpt[1]*outcoord_scale);
                 p->vtxz.push_back(1000*get_vtxval(h1->vertex()));
                 if(p->pts.size() > 4) break;
             } while(h1 != h0);

@@ -150,14 +150,17 @@ void meshgen_test() {
 
     MSx.calc_vtxvals(*CP.M);
     MSx.dcmode = FEMesh3Slice::PHI;
+    MSx.outcoord_scale = 0.1;
     MSx.write_svg("slice_x.svg",*CP.M);
     //
     MSy.calc_vtxvals(*CP.M);
     MSy.dcmode = FEMesh3Slice::PHI;
+    MSy.outcoord_scale = 0.1;
     MSy.write_svg("slice_y.svg",*CP.M);
     //
     MSz.calc_vtxvals(*CP.M);
     MSz.dcmode = FEMesh3Slice::PHI;
+    MSz.outcoord_scale = 0.1;
     MSz.write_svg("slice_z.svg",*CP.M);
     
     ofstream meshdump;

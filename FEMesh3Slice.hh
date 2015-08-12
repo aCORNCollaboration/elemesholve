@@ -40,6 +40,7 @@ public:
     
     double vis_rmax2 = DBL_MAX;         ///< radius^2 of SVG visualization view
     double vis_center[2] = {0,0};       ///< center of SVG visualization view
+    double outcoord_scale = 1.0;        ///< coordinate scaling for SVG output
     bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some
     
 protected:
