@@ -123,7 +123,7 @@ protected:
     vector<Tr::Vertex_handle> make_face(const Tr::Cell_handle& C, set<MS_HDS::Vertex_handle>& vxs);
 };
 
-
-
+/// dot product between 3D point (as vector) and vector
+inline double pdotv(K::Point_3 p, K::Vector_3 v) { return p.x()*v.x() + p.y()*v.y() + p.z()*v.z(); }
 
 #endif

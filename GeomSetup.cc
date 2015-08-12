@@ -343,6 +343,7 @@ void SphereTestGeom::calc_bvals(const C3t3& M) {
             if(i==it->second) continue;
             C3t3::Vertex_handle vi = it->first->vertex(i);
             K::Point_3 p = vi->point();
+            if(theWorld->T) p = theWorld->T->mesh2phys(p);
             double rr = p.x()*p.x() + p.y()*p.y() + p.z()*p.z();
             bpts[vi] = (rr > rinner*rinner*1.1? 1. : 1./rinner);
         }
