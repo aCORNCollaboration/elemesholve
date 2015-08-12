@@ -124,7 +124,7 @@ public:
         Gaxis->attrs["id"] = "Gaxis";
         Gaxis->attrs["gradientTransform"] = "rotate(-90) translate(-1 0)";
         Gaxis->attrs["xlink:href"] = "#"+lg->attrs["id"];
-        Gaxis->attrs["gradientUnits"] = "objectBoundingBox";
+        //Gaxis->attrs["gradientUnits"] = "objectBoundingBox"; // should need this? but causes problems?
         axisGroup->addChild(Gaxis);
         
         // gradient rectangle
@@ -139,9 +139,11 @@ public:
     
     /// finalize range; set up text
     void finalize() {
-        SVG::text* uLabel = new SVG::text(to_str(range.hi[0]), 0.107, 0.);
+        SVG::text* uLabel = new SVG::text(to_str(range.hi[0]), 0.107, 0.06);
+        uLabel->attrs["dominant-baseline"]="middle";
         axisGroup->addChild(uLabel);
-        SVG::text* lLabel = new SVG::text(to_str(range.lo[0]), 0.107, 0.93);
+        SVG::text* lLabel = new SVG::text(to_str(range.lo[0]), 0.107, 0.995);
+        lLabel->attrs["dominant-baseline"]="middle";
         axisGroup->addChild(lLabel);
     }
     
@@ -286,7 +288,7 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
         double yscale = BB.dl(1);
         zAxis.axisGroup->attrs["transform"] = "translate(" + to_str(BB.pos(1.1,0)) + " " + to_str(BB.pos(0.5,1) - 0.5*yscale) + ") scale(" + to_str(yscale) + ")";
         // expand to final display window
-        vtxpt[0] = BB.pos(1.4,0);
+        vtxpt[0] = BB.pos(1.43,0);
         vtxpt[1] = BB.hi[1];
         BB.expand(vtxpt);
     }
