@@ -35,24 +35,25 @@ public:
 class SphereTestDomain: public GeomDomainFunction {
 public:
     /// Constructor
-    SphereTestDomain(double r1, double r2): rr1(r1*r1), rr2(r2*r2) { }
+    SphereTestDomain(double r1, double r2, const CoordinateTransform* CT = NULL);
     /// labeling function
     virtual int f(double x, double y, double z) const;
     /// mesh size function
-    virtual double meshsize(double x, double y, double z) const { return 0.01; }
-    double rr1; ///< outer sphere radius
-    double rr2; ///< inner sphere radius
+    virtual double meshsize(double x, double y, double z) const;
+    /// add mesh-guiding "features" to Polylines list
+    virtual void add_features(Polylines& v) const;
+    
+    double rr1; ///< outer sphere radius^2
+    double rr2; ///< inner sphere radius^2
 };
 
 /// Concentric spheres test geometry
 class SphereTestGeom: public GeomSetup {
 public:    
     /// Constructor
-    SphereTestGeom();
+    SphereTestGeom(const CoordinateTransform* CT = NULL);
     /// Calculate boundary conditions for mesh
     virtual void calc_bvals(const C3t3& M);
-    
-    //virtual FT operator()(const K::Point_3& p, const int, const Index&) const;
     
     double rinner;      ///< radius of inner sphere
 };

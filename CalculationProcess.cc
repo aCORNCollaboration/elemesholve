@@ -11,21 +11,23 @@
 CalculationProcess::CalculationProcess():
 YSQ(0, 10., 0.7),
 G(&YSQ),
-GW(G.theWorld),
-RadiusMesh(G.theWorld, 0.5),
-domain(GW, G.theWorld->myBounds, 1e-6),
+STG(&YSQ),
+myGeom(&STG),
+GW(myGeom->theWorld),
+RadiusMesh(myGeom->theWorld, 0.5),
+domain(GW, myGeom->theWorld->myBounds, 1e-6),
 edge_criterea(RadiusMesh),
 facet_criteria(29,           // angle bound
                RadiusMesh,   // radius bound field
                2e-3,         // distance bound
                CGAL::FACET_VERTICES_ON_SURFACE ),     // facet topology requirement
                //CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK ),
-cell_criteria(3,              // radius-edge ratio
-              RadiusMesh),      // sizing field
+cell_criteria(3,             // radius-edge ratio
+              RadiusMesh),   // sizing field
 criteria(edge_criterea, facet_criteria, cell_criteria)
 {
     YSQ.z0 = G.myWorld.WC.gridz;
-    G.add_features(domain);
+    myGeom->add_features(domain);
 }
 
 void CalculationProcess::gen_mesh() {
@@ -42,9 +44,9 @@ void CalculationProcess::refine_mesh() {
 
 void CalculationProcess::setup_solver() {
     printf("Setting up solver...\n");
-    G.calc_bvals(c3t3);
+    myGeom->calc_bvals(c3t3);
     M = new FEMesh3(c3t3, &YSQ);
-    M->set_boundary_points(G);
-    M->set_boundary_values(G);
+    M->set_boundary_points(*myGeom);
+    M->set_boundary_values(*myGeom);
 }
 

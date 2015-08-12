@@ -102,6 +102,12 @@ void meshgen_test() {
 
     CalculationProcess CP;
     
+    printf("Setting %zu features.\n", CP.myGeom->polylines.size());
+    vsr::startRecording(true);
+    vsr::clearWindow();
+    for(auto it = CP.myGeom->polylines.begin(); it != CP.myGeom->polylines.end(); it++) draw_polyline(*it);
+    vsr::stopRecording();
+    
     clock_t startTime = clock();
     CP.gen_mesh();
     CP.refine_mesh();
@@ -131,7 +137,7 @@ void meshgen_test() {
     vsr::clearWindow();
     vsr::setColor(0,0,1);
     MSy.draw();
-    V.draw(&CP.G);
+    V.draw(CP.myGeom);
     vsr::stopRecording();
     vsr::pause();
     

@@ -269,13 +269,7 @@ double EMirrorWorldVolume::meshsize(double x, double y, double z) const {
 
 EMirrorGeom::EMirrorGeom(const CoordinateTransform* CT): myWorld(CT)  {
     theWorld = &myWorld;
-    
     myWorld.add_features(polylines);
-    printf("Setting %zu features.\n", polylines.size());
-    vsr::startRecording(true);
-    vsr::clearWindow();
-    for(auto it = polylines.begin(); it != polylines.end(); it++) draw_polyline(*it);
-    vsr::stopRecording();
 }
 
 void EMirrorGeom::calc_bvals(const C3t3& M) {
@@ -307,20 +301,39 @@ void EMirrorGeom::calc_bvals(const C3t3& M) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+SphereTestDomain::SphereTestDomain(double r1, double r2, const CoordinateTransform* CT):
+GeomDomainFunction(CT), rr1(r1*r1), rr2(r2*r2) {
+    myBounds = CGAL::Bbox_3(-1.1*r1, -1.1*r1, -1.1*r1,  1.1*r1, 1.1*r1, 1.1*r1);
+}
+
 int SphereTestDomain::f(double x, double y, double z) const { 
     double rr = x*x + y*y + z*z; 
     return rr > rr1? 0 : rr > rr2? 1 : 0;
 }
-    
-SphereTestGeom::SphereTestGeom(): rinner(0.001) {
-    theWorld = new SphereTestDomain(1.0, rinner);
-    
+
+double SphereTestDomain::meshsize(double x, double y, double z) const {
+    double rr = x*x + y*y + z*z;
+    return (rr > rr2? sqrt(rr) : sqrt(rr2))*0.5;
+}
+
+void SphereTestDomain::add_features(Polylines& v) const {
     int nj = 4;
+    double rinner = sqrt(rr2);
     for(int j=0; j < nj; j++) {
         double zj = -1 + (j+0.5)*2./nj;
+        if(zj > 1) zj = 1;
         double rxy = rinner*sqrt(1-zj*zj);
-        zcircle(polylines, 0, 0, rinner*zj, rxy, 100);
+        zcircle(v, 0, 0, rinner*zj, rxy, 100);
     }
+}
+
+///////////
+
+SphereTestGeom::SphereTestGeom(const CoordinateTransform* CT): rinner(3.0) {
+    double router = 7.0;
+    theWorld = new SphereTestDomain(router, rinner, CT); 
+    //theWorld->add_features(polylines);
+    zcircle(polylines, 0, 0, 0, router, 100);
 }
     
 void SphereTestGeom::calc_bvals(const C3t3& M) {

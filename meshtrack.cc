@@ -34,6 +34,17 @@ void scan_line(SimplexMesh<3,float>& M, const float x0[3], const float x1[3], un
     }
 }
 
+struct xycoord { float x, y; };
+void radial_scanpoints(float r, float dr, vector<xycoord>& v) {
+    int npts = int(2*M_PI*r/dr)+1;
+    for(int i=0; i<npts; i++) {
+        float th = i*2*M_PI/npts;
+        xycoord xy;
+        xy.x = r*cos(th);
+        xy.y = r*sin(th);
+        v.push_back(xy);
+    }
+}
 
 void* mainThread(void*) {
     
@@ -52,12 +63,15 @@ void* mainThread(void*) {
     
     M.verbose = 0;
     ofstream o("../elemesholve-bld/scan.txt");
-    float x0[3] = { 0, 0, -5 };
-    float x1[3] = { 0, 0, 5 };
+    float x0[3] = { 0, 0, -8 };
+    float x1[3] = { 0, 0, 8 };
+    vector<xycoord> v;
     int nptsr = 11;
-    for(int nr = 0; nr < nptsr; nr++) {
-        x0[0] = x1[0] = nr*4./(nptsr-1);
-        scan_line(M, x0, x1, 101, o);
+    for(int nr = 0; nr < nptsr; nr++) radial_scanpoints(nr*4.0/(nptsr-1), 4.0/(nptsr-1), v);
+    for(auto it = v.begin(); it != v.end(); it++) {
+        x0[0] = x1[0] = it->x;
+        x0[1] = x1[1] = it->y;
+        scan_line(M, x0, x1, 501, o);
     }
     cout << "Done!\n";
     vsr::set_kill();
