@@ -5,8 +5,9 @@
 // 
 // -- Michael P. Mendenhall, 2015
 
-
 // g++ -O3 --std=c++11 -o plot_slice -I${MPMUTILS}/GeneralUtils/ -L${MPMUTILS}/GeneralUtils/ plot_slice.cc SVGSliceRenderer.cc CellMatrix.cc -lMPMGeneralUtils
+// rsvg-convert -f pdf -o slices_xyz_0.pdf slices_xyz_0.svg
+// inkscape slices_xyz_0.svg --export-pdf=slices_xyz_0.pdf
 
 #include "SVGSliceRenderer.hh"
 #include "StringManip.hh"
@@ -17,18 +18,23 @@ int main(int argc, char** argv) {
         printf("./plot_slice <filename>.dat");
         return EXIT_FAILURE;
     }
-    
-    SVGSliceRenderer SR;
-    //SR.dcmode = SVGSliceRenderer::PHI;
-    SR.logscale = true;
-    
     string infl = argv[1];
     ifstream is(infl.c_str(),  std::ios::in | std::ios::binary);
-    SR.read(is);
+    
+    for(int i=0; i<3; i++) {
+        SVGSliceRenderer SR;
+        SR.outcoord_scale = 0.1;
+        SR.dcmode = SVGSliceRenderer::TRANSVERSE;
+        if(i==2) SR.dcmode = SVGSliceRenderer::PHI;
+        SR.logscale = i<2;
+        
+        SR.read(is);
+        
+        string outfl = dropLast(infl,".")+"_"+to_str(i)+".svg";
+        SR.write_svg(outfl);
+    }
+    
     is.close();
     
-    string outfl = dropLast(infl,".")+".svg";
-    SR.write_svg(outfl);
-        
     return EXIT_SUCCESS;
 }

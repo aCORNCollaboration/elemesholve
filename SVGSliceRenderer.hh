@@ -21,12 +21,15 @@ public:
     /// face coloring modes
     enum DisplayColorMode {
         MAG_GRAD,       ///< |E|
+        DOT_AXIAL,      ///< component of E along axis vector
+        TRANSVERSE,     ///< magnitude of E transverse to axis vector
         PHI             ///< gradient-shaded potential
     } dcmode = MAG_GRAD;        ///< mode for color data
     bool logscale = false;      ///< z axis log scale
     
     double vis_rmax2 = DBL_MAX;         ///< radius^2 of SVG visualization view
     double vis_center[2] = {0,0};       ///< center of SVG visualization view
+    double axis_direction[3] = {0,0,1}; ///< direction for axial/transverse components
     double outcoord_scale = 1.0;        ///< coordinate scaling for SVG output
     bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some
     

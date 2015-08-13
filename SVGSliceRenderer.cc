@@ -102,6 +102,9 @@ public:
     
     /// finalize range; set up text
     void finalize() {
+        if(logscale) {
+            if(range.lo[0] < 1e-6*range.hi[0]) range.lo[0] = 1e-6*range.hi[0];
+        }
         SVG::text* uLabel = new SVG::text(to_str(range.hi[0]), 0.107, 0.06);
         uLabel->attrs["dominant-baseline"]="middle";
         axisGroup->addChild(uLabel);
@@ -188,15 +191,24 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
         
         // collect appropriate data
         if(dcmode == PHI) for(auto it = p->vtxz.begin(); it != p->vtxz.end(); it++) zAxis.range.expand(&*it);
-        if(dcmode == MAG_GRAD) {
+        else {
             p->vtxz.clear();
             double z = 0;
-            for(int i=0; i<3; i++) z += it->x[i+1]*it->x[i+1];
-            z = sqrt(z);
+            if(dcmode == MAG_GRAD || dcmode == TRANSVERSE) {
+                for(int i=0; i<3; i++) z += it->x[i+1]*it->x[i+1];
+                if(dcmode == MAG_GRAD) z = sqrt(z);
+            }
+            if(dcmode == DOT_AXIAL || dcmode == TRANSVERSE) {
+                double z2 = 0;
+                for(int i=0; i<3; i++) z2 += it->x[i+1]*axis_direction[i];
+                if(dcmode == TRANSVERSE) {
+                    z = sqrt(z - z2*z2);
+                } else z = z2;
+            }
             zAxis.range.expand(&z);
             p->vtxz.push_back(z);
         }
-        
+
         // expand image bounding box and insert polygon
         for(auto it = p->pts.begin(); it != p->pts.end(); it++) {
             vtxpt[0] = it->first;
@@ -208,6 +220,7 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
     }
        
     // assign polygon colors by z
+    zAxis.finalize();
     int nsubgrad = 0;
     for(auto it = facepoly.begin(); it != facepoly.end(); it++) {
         PB->update(nfaces++);
@@ -230,6 +243,7 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
         }
         // apply flat or gradient fill
         if(p->vtxz.size() == 1) {
+            p->vtxz[0] = p->vtxz[0]<0? 0 : p->vtxz[0]>1? 1 : p->vtxz[0];
             if(p->attrs.count("style")) p->attrs["style"] += ";";
             p->attrs["style"] += "fill:#"+color::rgb(G.hsvcolor(p->vtxz[0])).asHexString();
         } else if(p->vtxz.size() >= 3) {
@@ -247,11 +261,10 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
     delete PB;
     
     // scale/move axis into position
-    zAxis.finalize();
     double yscale = BB.dl(1);
     zAxis.axisGroup->attrs["transform"] = "translate(" + to_str(BB.pos(1.1,0)) + " " + to_str(BB.pos(0.5,1) - 0.5*yscale) + ") scale(" + to_str(yscale) + ")";
     // expand to final display window
-    vtxpt[0] = BB.pos(1.41,0);
+    vtxpt[0] = BB.pos(1.5,0);
     vtxpt[1] = BB.hi[1];
     BB.expand(vtxpt);
 
