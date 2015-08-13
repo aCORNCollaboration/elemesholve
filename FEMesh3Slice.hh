@@ -18,7 +18,7 @@ using std::string;
 class FEMesh3Slice: public MeshSlice {
 public:
     /// Constructor
-    FEMesh3Slice(const C3t3& MM, K::Plane_3 PP, const CoordinateTransform* CT = NULL): MeshSlice(MM, PP, CT) { }
+    FEMesh3Slice(const C3t3& MM, K::Plane_3 PP, const CoordinateTransform* CT = NULL, size_t nd = 1): MeshSlice(MM, PP, CT, nd) { }
     
     /// calculate interpolated values at vertices; over faces
     void calc_vtxvals(const FEMesh3& F);

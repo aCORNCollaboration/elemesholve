@@ -288,7 +288,7 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
         double yscale = BB.dl(1);
         zAxis.axisGroup->attrs["transform"] = "translate(" + to_str(BB.pos(1.1,0)) + " " + to_str(BB.pos(0.5,1) - 0.5*yscale) + ") scale(" + to_str(yscale) + ")";
         // expand to final display window
-        vtxpt[0] = BB.pos(1.43,0);
+        vtxpt[0] = BB.pos(1.41,0);
         vtxpt[1] = BB.hi[1];
         BB.expand(vtxpt);
     }
@@ -322,5 +322,6 @@ void FEMesh3Slice::write_svg(const string& fname, const FEMesh3& F) const {
     s.setView(BB, 10);
     s.write(o);
     //rsvg-convert -f pdf -o slice_y.pdf slice_y.svg
+    //inkscape slice_y.svg --export-pdf=slice_y.pdf
     o.close();
 }

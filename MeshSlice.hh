@@ -62,7 +62,7 @@ inline vsr::vec3 MSVtoV(MS_HDS::Vertex_handle h) { return PtoV(h->point()); }
 class MeshSlice {
 public:
     /// Constructor
-    MeshSlice(const C3t3& MM, K::Plane_3 PP, const CoordinateTransform* CT = NULL);
+    MeshSlice(const C3t3& MM, K::Plane_3 PP, const CoordinateTransform* CT = NULL, size_t nd = 1);
     
     /// visualize
     void draw() const;
@@ -107,10 +107,12 @@ protected:
     set<Tr::Cell_handle> foundCells;                            ///< cells already evaluated in meshing process
     
     map<MSEdge, MS_HDS::Halfedge_handle> foundEdges;            ///< index to halfedge pairs by incident vertices.
-   
     
+    size_t findndomains;                                ///< number of disconnected domains to search for
+    bool is_first_intersection = false;                 ///< flag for cells not connected to others
+    C3t3::Cells_in_complex_iterator searchPosition;     ///< intersection search position in cells list
     /// finds one cell intersecting plane; sets up initial half-edge
-    Tr::Cell_handle find_first_intersection();
+    void find_first_intersection();
     /// find all intersections with cell
     void find_intersections(const Tr::Cell_handle& C, set< MS_HDS::Vertex_handle >& ixn_vertices);
     /// generate a new half-edge pair between vertices; returns halfedge incident into vto

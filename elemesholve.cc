@@ -129,7 +129,7 @@ void meshgen_test() {
     K::Plane_3 SPz(K::Point_3(0, 0, 0.15), K::Vector_3(0,0,1));
     FEMesh3Slice MSx(CP.c3t3, SPx, &CP.YSQ);
     FEMesh3Slice MSy(CP.c3t3, SPy, &CP.YSQ);
-    FEMesh3Slice MSz(CP.c3t3, SPz, &CP.YSQ);
+    FEMesh3Slice MSz(CP.c3t3, SPz, &CP.YSQ, 2);
     
     // Visualize
     C3t3_Vis V(CP.c3t3, &CP.YSQ);

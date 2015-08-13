@@ -12,8 +12,10 @@
 #include "MeshVis.hh"
 #include "Visr.hh"
 
-MeshSlice::MeshSlice(const C3t3& MM, const K::Plane_3 PP, const CoordinateTransform* CT): M(MM), P(PP), myIntersectionHandler(PP, slice, CT) {
-    printf("Mesh plane slice calculation!\n");
+MeshSlice::MeshSlice(const C3t3& MM, const K::Plane_3 PP, const CoordinateTransform* CT, size_t nd):
+M(MM), P(PP), myIntersectionHandler(PP, slice, CT), findndomains(nd) {
+    
+    printf("Mesh slice calculation...\n");
     
     // plane coordinates basis
     K::Vector_3 b0 = P.base1();
@@ -26,42 +28,50 @@ MeshSlice::MeshSlice(const C3t3& MM, const K::Plane_3 PP, const CoordinateTransf
     double n2 = 1./sqrt(b2.squared_length());
     pcoords[2] = K::Vector_3(b2.x()*n2, b2.y()*n2, b2.z()*n2); 
     
-    // search for one cell intersecting plane
-    toProcess.insert(find_first_intersection());
-    if(*toProcess.begin() == NULL) {
-        printf("Non-intersecting slice plane!\n");
-        return;
-    }
-    
-    // "seed fill" on connected cells
+    // starting search point
+    searchPosition = M.cells_in_complex_begin();
     int ntricells = 0, nquadcells = 0;
-    while(toProcess.size()) {
-        // move from "to process" to "found" list
-        auto it = toProcess.begin();
-        Tr::Cell_handle C = *it;
-        toProcess.erase(it);
-        foundCells.insert(C);
+    
+    while(findndomains--) {
+        // search for one cell intersecting plane
+        find_first_intersection();
+        if(searchPosition == M.cells_in_complex_end()) {
+            printf("Intersection search terminated with %zu domains remaining.\n", findndomains+1);
+            break;
+        }
+        assert(is_first_intersection);
+        toProcess.insert(searchPosition++);
         
-        // collect all intersections with cell edges
-        set< MS_HDS::Vertex_handle > ixn_vertices;
-        find_intersections(C, ixn_vertices);
-        ntricells += (ixn_vertices.size()==3);
-        nquadcells += (ixn_vertices.size()==4);
-        
-        if(ixn_vertices.size() < 3) continue;   // non-intersecting or degenerate tip, edge intersection
-        vector<Tr::Vertex_handle> traversed = make_face(C, ixn_vertices);
-        
-        // check which of neighboring cells share a traversal vertex
-        for(int i=0; i<4; i++) {
-            Tr::Cell_handle C2 = C->neighbor(i);
-            if(M.is_in_complex(C2) && !foundCells.count(C2)) {
-                for(auto it = traversed.begin(); it != traversed.end(); it++)
-                    if(C2->has_vertex(*it)) { toProcess.insert(C2); break; }
+        // "seed fill" on connected cells
+        while(toProcess.size()) {
+            // move from "to process" to "found" list
+            auto it = toProcess.begin();
+            Tr::Cell_handle C = *it;
+            toProcess.erase(it);
+            foundCells.insert(C);
+            
+            // collect all intersections with cell edges
+            set< MS_HDS::Vertex_handle > ixn_vertices;
+            find_intersections(C, ixn_vertices);
+            ntricells += (ixn_vertices.size()==3);
+            nquadcells += (ixn_vertices.size()==4);
+            
+            if(ixn_vertices.size() < 3) continue;   // non-intersecting or degenerate tip, edge intersection
+            vector<Tr::Vertex_handle> traversed = make_face(C, ixn_vertices);
+            
+            // check which of neighboring cells share a traversal vertex
+            for(int i=0; i<4; i++) {
+                Tr::Cell_handle C2 = C->neighbor(i);
+                if(M.is_in_complex(C2) && !foundCells.count(C2)) {
+                    for(auto it = traversed.begin(); it != traversed.end(); it++)
+                        if(C2->has_vertex(*it)) { toProcess.insert(C2); break; }
+                }
             }
         }
+        printf("\tFound %zu cells (%i+%i) intersecting plane.\n", foundCells.size(), ntricells, nquadcells);
     }
     
-    printf("\nFound %zu cells (%i+%i) intersecting plane.\n", foundCells.size(), ntricells, nquadcells);
+    printf("Mesh slice complete.\n\n");
 }
 
 void MeshSlice::find_intersections(const Tr::Cell_handle& C, set< MS_HDS::Vertex_handle >& ixn_vertices) {
@@ -111,7 +121,7 @@ MS_HDS::Halfedge_handle MeshSlice::order_face_points(set<MS_HDS::Vertex_handle>&
         for(; it2 != vxs.end(); it2++) {
             h = get_opposite(MSEdge(*it1, *it2));
             if(h != NULL) {
-                if(foundEdges.size() == 1) h = h->opposite(); // special case for first edge
+                if(is_first_intersection) h = h->opposite(); // special case for first edge
                 vxs.erase(it1);
                 vxs.erase(it2);
                 break;
@@ -154,6 +164,7 @@ vector<Tr::Vertex_handle> MeshSlice::make_face(const Tr::Cell_handle& C, set<MS_
     // vertex loop around cell
     vector<MS_HDS::Vertex_handle> v;
     MS_HDS::Halfedge_handle hprev = order_face_points(vxs, v);
+    is_first_intersection = false;
     if(hprev == NULL) return traversed; // shouldn't happen... but just in case...
     traversed.push_back(traversal_vertex(hprev));
     // new face for this cell
@@ -190,16 +201,23 @@ vector<Tr::Vertex_handle> MeshSlice::make_face(const Tr::Cell_handle& C, set<MS_
     return traversed;
 }
 
-Tr::Cell_handle MeshSlice::find_first_intersection() {
-    for(auto it = M.cells_in_complex_begin(); it != M.cells_in_complex_end(); it++) { 
+void MeshSlice::find_first_intersection() {
+    for( ; searchPosition != M.cells_in_complex_end(); searchPosition++) {
+        // skip previously-identified intersections
+        if(foundCells.count(searchPosition)) continue;
+        
+        // count intersection points; require 3 for a good hit.
         set< MS_HDS::Vertex_handle > ixn_vertices;
-        find_intersections(it, ixn_vertices);
+        find_intersections(searchPosition, ixn_vertices);
         if(ixn_vertices.size() != 3) continue;
+        
+        // set up initial orientation-guiding edge and return
         new_edge(*ixn_vertices.begin(), *ixn_vertices.rbegin());
-        if(verbose >= 3) std::cout << "First intersecting cell: " << &*it << "\n";
-        return it;
+        if(verbose >= 3) std::cout << "First intersecting cell: " << &*searchPosition << "\n";
+        is_first_intersection = true;
+        return;
     }
-    return NULL;
+    is_first_intersection = false;
 }
 
 MS_HDS::Vertex_handle MeshSlice::Intersection_handler::operator()(const K::Point_3& p) {
