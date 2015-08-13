@@ -9,11 +9,12 @@
 #define SVGSLICERENDERER_HH
 
 #include "HDS.hh"
+#include "SliceHeader.hh"
 #include <string>
 using std::string;
 #include <cfloat>
 
-class SVGSliceRenderer: public HalfedgeDS< HDS_Vertex<3,float>, HDS_Face<4,float> > {
+class SVGSliceRenderer: public HalfedgeFatDS< HDS_Vertex<3,float>, HDS_Face<4,float> > {
 public:
     /// Constructor
     SVGSliceRenderer() { }
@@ -27,12 +28,15 @@ public:
     } dcmode = MAG_GRAD;        ///< mode for color data
     bool logscale = false;      ///< z axis log scale
     
+    SliceHeader<3,double> SH;           ///< info on slice plane
     double vis_rmax2 = DBL_MAX;         ///< radius^2 of SVG visualization view
     double vis_center[2] = {0,0};       ///< center of SVG visualization view
     double axis_direction[3] = {0,0,1}; ///< direction for axial/transverse components
     double outcoord_scale = 1.0;        ///< coordinate scaling for SVG output
     bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some
     
+    /// read in data file
+    virtual void read(istream& is) { SH.read(is); HalfedgeFatDS< HDS_Vertex<3,float>, HDS_Face<4,float> >::read(is); }
     /// generate SVG output
     void write_svg(const string& fname) const;
 };

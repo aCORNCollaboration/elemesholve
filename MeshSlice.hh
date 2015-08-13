@@ -74,7 +74,7 @@ protected:
     const C3t3& M;      ///< mesh being sliced
     
     K::Plane_3 P;               ///< slice plane
-    K::Vector_3 pcoords[3];     ///< plane coordinated basis vectors
+    K::Vector_3 pcoords[3];     ///< plane coordinate basis vectors
     
     /// wrapper for handling polymorphic type segment/plane intersections using Boost magic
     class Intersection_handler {

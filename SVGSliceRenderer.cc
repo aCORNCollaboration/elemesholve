@@ -126,6 +126,7 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
     SVG::make_standalone_header(o);
     
     // top-level SVG element
+    XMLBuilder::indent = "\t";
     SVG::svg s;
     s.addChild(new SVG::title("elemesholve slice"));
     
@@ -244,8 +245,7 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
         // apply flat or gradient fill
         if(p->vtxz.size() == 1) {
             p->vtxz[0] = p->vtxz[0]<0? 0 : p->vtxz[0]>1? 1 : p->vtxz[0];
-            if(p->attrs.count("style")) p->attrs["style"] += ";";
-            p->attrs["style"] += "fill:#"+color::rgb(G.hsvcolor(p->vtxz[0])).asHexString();
+            p->attrs["fill"] = "#"+color::rgb(G.hsvcolor(p->vtxz[0])).asHexString();
         } else if(p->vtxz.size() >= 3) {
             PolygonPlane PP(p);
             XMLBuilder* Gi = new XMLBuilder("linearGradient");

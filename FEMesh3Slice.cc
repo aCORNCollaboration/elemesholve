@@ -10,6 +10,7 @@
 #include "ProgressBar.hh"
 #include "BBox.hh"
 #include "HDS.hh"
+#include "SliceHeader.hh"
 
 void FEMesh3Slice::calc_vtxvals(const FEMesh3& F) {
     vtxvals.clear();
@@ -38,6 +39,14 @@ void FEMesh3Slice::draw_projection() const {
 }
 
 void FEMesh3Slice::dump_HDS(ostream& o, const FEMesh3& F) const {
+    
+    SliceHeader<3,double> SH;
+    for(int i=0; i<3; i++) {
+        SH.x[i] = P.point()[i];
+        for(int j=0; j<3; j++) SH.basis[i][j] = pcoords[i][j];
+    }
+    SH.write(o);
+    
     HalfedgeDS_Builder<HDS_Vertex<3,float>, HDS_Face<4,float>, MS_HDS::Vertex_const_handle, MS_HDS::Halfedge_const_handle> B;
     
     HDS_Vertex<3,float> v;

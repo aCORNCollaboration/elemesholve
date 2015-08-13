@@ -27,13 +27,9 @@ public:
     val_tp x[D];        ///< vertex data
 
     /// load from file
-    void read(istream& is) {
-        is.read((char*)x, D*sizeof(x[0]));
-    }
+    virtual void read(istream& is) { is.read((char*)x, D*sizeof(x[0])); }
     /// write to file
-    void write(ostream& o) const {
-        o.write((char*)x, D*sizeof(x[0]));
-    }
+    virtual void write(ostream& o) const { o.write((char*)x, D*sizeof(x[0])); }
 };
 
 /// index type
@@ -50,17 +46,27 @@ public:
     index_tp vtx = 0;           ///< index of incident vertex
     
     /// load from file
-    void read(istream& is) {
+    virtual void read(istream& is) {
         is.read((char*)&next, sizeof(next));
         is.read((char*)&opposite, sizeof(opposite));
         is.read((char*)&vtx, sizeof(vtx));
     }
     /// write to file
-    void write(ostream& o) const {
+    virtual void write(ostream& o) const {
         o.write((char*)&next, sizeof(next));
         o.write((char*)&opposite, sizeof(opposite));
         o.write((char*)&vtx, sizeof(vtx));
     }
+};
+
+/// HDS edge with "richer" information
+class HDS_FatEdge: public HDS_Edge {
+public:
+    /// Constructor
+    HDS_FatEdge() { }
+    
+    index_tp prev = 0;          ///< index of previous edge
+    index_tp face = 0;          ///< index of associated face
 };
 
 /// HDS face type
@@ -74,34 +80,46 @@ public:
     val_tp x[D];        ///< face data
     
     /// load from file
-    void read(istream& is) {
+    virtual void read(istream& is) {
         is.read((char*)&edge, sizeof(edge));
         is.read((char*)x, D*sizeof(x[0]));
     }
     /// write to file
-    void write(ostream& o) const {
+    virtual void write(ostream& o) const {
         o.write((char*)&edge, sizeof(edge));
         o.write((char*)x, D*sizeof(x[0]));
     }
 };
 
 /// Halfedge data structure (not intended for modification)
-template<class vtx_tp, class face_tp>
+template<class vtx_tp, class face_tp, class edge_tp = HDS_Edge>
 class HalfedgeDS {
 public:
     /// Constructor
     HalfedgeDS() { }
     
     vector<vtx_tp> vertices;    ///< enumerated vertices
-    vector<HDS_Edge> edges;     ///< enumerated halfedges; edge 0 reserved for "unpaired"
+    vector<edge_tp> edges;      ///< enumerated halfedges; edge 0 reserved for "unpaired"
     vector<face_tp> faces;      ///< faces
+    int verbose = 1;            ///< verbosity level
     
     /// load from file
-    void read(istream& is);
+    virtual void read(istream& is);
     /// write to file
-    void write(ostream& o) const;
-    
-    int verbose = 1;            ///< verbosity level
+    virtual void write(ostream& o) const;
+};
+
+/// Halfedge data structure with extra helper information
+template<class vtx_tp, class face_tp, class edge_tp = HDS_FatEdge>
+class HalfedgeFatDS: public HalfedgeDS<vtx_tp, face_tp, edge_tp> {
+public:
+    /// Constructor
+    HalfedgeFatDS() { }
+    /// load from file
+    virtual void read(istream& is) { HalfedgeDS<vtx_tp, face_tp, edge_tp>::read(is); fill_FatEdges(); }
+protected:
+    /// compute face and reverse info in HDS_FatEdge
+    virtual void fill_FatEdges();
 };
 
 /// Helper class for building HDS from alternate version
@@ -139,16 +157,17 @@ public:
     /// add face (specified by incident edge)
     void add_face(const face_tp& f, edge_index i) { HDS.faces.push_back(f); HDS.faces.back().edge = get_edge_enum(i); }
     
-    HalfedgeDS<vtx_tp, face_tp> HDS;            ///< data structure being built
+    HalfedgeDS<vtx_tp, face_tp, HDS_Edge> HDS;  ///< data structure being built
     map<vtx_index, index_tp> vtx_enum;          ///< re-enumeration of vertices
     map<edge_index, index_tp> edge_enum;        ///< re-enumeration of edges
     
 };
 
 //////////////////////////////////
+//////////////////////////////////
 
-template<class vtx_tp, class face_tp>
-void HalfedgeDS<vtx_tp, face_tp>::read(istream& is) {
+template<class vtx_tp, class face_tp, class edge_tp>
+void HalfedgeDS<vtx_tp, face_tp, edge_tp>::read(istream& is) {
     // load vertices
     index_tp nvertices;
     is.read((char*)&nvertices, sizeof(nvertices));
@@ -173,8 +192,8 @@ void HalfedgeDS<vtx_tp, face_tp>::read(istream& is) {
     if(verbose) cout << "Done!" << std::endl;
 }
 
-template<class vtx_tp, class face_tp>
-void HalfedgeDS<vtx_tp, face_tp>::write(ostream& o) const {
+template<class vtx_tp, class face_tp, class edge_tp>
+void HalfedgeDS<vtx_tp, face_tp, edge_tp>::write(ostream& o) const {
     if(verbose) cout << "Writing HDS to file..." << std::endl;
     
     index_tp nvertices = vertices.size();
@@ -193,6 +212,23 @@ void HalfedgeDS<vtx_tp, face_tp>::write(ostream& o) const {
     for(auto it = faces.begin(); it != faces.end(); it++) it->write(o);
     
     if(verbose) cout << "\tDone!" << std::endl;
+}
+
+template<class vtx_tp, class face_tp, class edge_tp>
+void HalfedgeFatDS<vtx_tp, face_tp, edge_tp>::fill_FatEdges() {
+    if(this->verbose) cout << "Calculating additional connections..." << std::endl;
+    index_tp facenum = 0;
+    for(auto it = this->faces.begin(); it != this->faces.end(); it++) {
+        index_tp init_edge = it->edge;
+        index_tp current_edge = init_edge;
+        do {
+            index_tp prev_edge = current_edge;
+            current_edge = this->edges[current_edge].next;
+            this->edges[current_edge].prev = prev_edge;
+            this->edges[current_edge].face = facenum;
+        } while(current_edge != init_edge);
+        facenum++;
+    }
 }
 
 #endif
