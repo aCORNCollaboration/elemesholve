@@ -39,7 +39,7 @@ public:
 /// index type
 typedef size_t index_tp;
 
-/// HDS edge
+/// HDS edge base type
 class HDS_Edge {
 public:
     /// Constructor
@@ -63,8 +63,30 @@ public:
     }
 };
 
+/// HDS face type
+template<size_t D, typename val_tp>
+class HDS_Face {
+public:
+    /// Constructor
+    HDS_Face() { }
+    
+    index_tp edge = 0;  ///< index of one incident halfedge
+    val_tp x[D];        ///< face data
+    
+    /// load from file
+    void read(istream& is) {
+        is.read((char*)&edge, sizeof(edge));
+        is.read((char*)x, D*sizeof(x[0]));
+    }
+    /// write to file
+    void write(ostream& o) const {
+        o.write((char*)&edge, sizeof(edge));
+        o.write((char*)x, D*sizeof(x[0]));
+    }
+};
+
 /// Halfedge data structure (not intended for modification)
-template<class vtx_tp>
+template<class vtx_tp, class face_tp>
 class HalfedgeDS {
 public:
     /// Constructor
@@ -72,7 +94,7 @@ public:
     
     vector<vtx_tp> vertices;    ///< enumerated vertices
     vector<HDS_Edge> edges;     ///< enumerated halfedges; edge 0 reserved for "unpaired"
-    vector<index_tp> faces;     ///< faces, by index of one edge
+    vector<face_tp> faces;      ///< faces
     
     /// load from file
     void read(istream& is);
@@ -83,7 +105,7 @@ public:
 };
 
 /// Helper class for building HDS from alternate version
-template<class vtx_tp, typename vtx_index, typename edge_index>
+template<class vtx_tp, class face_tp, typename vtx_index, typename edge_index>
 class HalfedgeDS_Builder {
 public:
     /// Constructor
@@ -115,9 +137,9 @@ public:
         E.vtx = get_vtx_enum(vtx);
     }
     /// add face (specified by incident edge)
-    void add_face(edge_index i) { HDS.faces.push_back(get_edge_enum(i)); }
+    void add_face(const face_tp& f, edge_index i) { HDS.faces.push_back(f); HDS.faces.back().edge = get_edge_enum(i); }
     
-    HalfedgeDS<vtx_tp> HDS;                     ///< data structure being built
+    HalfedgeDS<vtx_tp, face_tp> HDS;            ///< data structure being built
     map<vtx_index, index_tp> vtx_enum;          ///< re-enumeration of vertices
     map<edge_index, index_tp> edge_enum;        ///< re-enumeration of edges
     
@@ -125,8 +147,8 @@ public:
 
 //////////////////////////////////
 
-template<class vtx_tp>
-void HalfedgeDS<vtx_tp>::read(istream& is) {
+template<class vtx_tp, class face_tp>
+void HalfedgeDS<vtx_tp, face_tp>::read(istream& is) {
     // load vertices
     index_tp nvertices;
     is.read((char*)&nvertices, sizeof(nvertices));
@@ -146,13 +168,13 @@ void HalfedgeDS<vtx_tp>::read(istream& is) {
     is.read((char*)&nfaces, sizeof(nfaces));
     if(verbose) cout << "Loading " << nfaces << " faces..." << std::endl;
     faces.resize(nfaces);
-    is.read((char*)faces.data(), nfaces*sizeof(faces[0]));
+    for(auto it = faces.begin(); it != faces.end(); it++) it->read(is);
     
     if(verbose) cout << "Done!" << std::endl;
 }
 
-template<class vtx_tp>
-void HalfedgeDS<vtx_tp>::write(ostream& o) const {
+template<class vtx_tp, class face_tp>
+void HalfedgeDS<vtx_tp, face_tp>::write(ostream& o) const {
     if(verbose) cout << "Writing HDS to file..." << std::endl;
     
     index_tp nvertices = vertices.size();
@@ -168,7 +190,7 @@ void HalfedgeDS<vtx_tp>::write(ostream& o) const {
     index_tp nfaces = faces.size();
     if(verbose) cout << "\twriting " << nfaces << " faces..." << std::endl;
     o.write((char*)&nfaces, sizeof(nfaces));
-    o.write((char*)faces.data(), nfaces*sizeof(faces[0]));
+    for(auto it = faces.begin(); it != faces.end(); it++) it->write(o);
     
     if(verbose) cout << "\tDone!" << std::endl;
 }

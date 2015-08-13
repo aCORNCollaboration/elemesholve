@@ -13,7 +13,7 @@
 using std::string;
 #include <cfloat>
 
-class SVGSliceRenderer: public HalfedgeDS< HDS_Vertex<3,float> > {
+class SVGSliceRenderer: public HalfedgeDS< HDS_Vertex<3,float>, HDS_Face<4,float> > {
 public:
     /// Constructor
     SVGSliceRenderer() { }

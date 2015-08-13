@@ -19,7 +19,8 @@ int main(int argc, char** argv) {
     }
     
     SVGSliceRenderer SR;
-    SR.dcmode = SVGSliceRenderer::PHI;
+    //SR.dcmode = SVGSliceRenderer::PHI;
+    SR.logscale = true;
     
     string infl = argv[1];
     ifstream is(infl.c_str(),  std::ios::in | std::ios::binary);

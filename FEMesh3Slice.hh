@@ -28,7 +28,7 @@ public:
     /// draw projected with z = vtxvals
     void draw_projection() const;
     /// dump to file as binary HDS
-    void dump_HDS(ostream& o) const;
+    void dump_HDS(ostream& o, const FEMesh3& F) const;
         
 protected:
     /// calculate vertex position in plane coordinates and z height

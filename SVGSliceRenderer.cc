@@ -159,8 +159,6 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
     cout << "Drawing " << faces.size() << " faces...\n";
     for(auto it = faces.begin(); it != faces.end(); it++) {
         PB->update(nfaces++);
-        //MS_HDS::Halfedge_const_handle h0 = it->halfedge();
-        //MS_HDS::Halfedge_const_handle h1 = h0;
         //const FEMesh3::CM& C = F.getCell(it->myCell);
         
         // the polygon
@@ -168,7 +166,7 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
         SVGFacePoly* p = new SVGFacePoly(); //stroke_borders? "stroke-width:"+to_str(w) : "");
         
         // collect polygon points
-        index_tp start_edge = *it;
+        index_tp start_edge = it->edge;
         index_tp current_edge = start_edge;
         size_t nOutside = 0;
         do {
@@ -188,8 +186,16 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
             continue;
         }
         
-        // record phi range
+        // collect appropriate data
         if(dcmode == PHI) for(auto it = p->vtxz.begin(); it != p->vtxz.end(); it++) zAxis.range.expand(&*it);
+        if(dcmode == MAG_GRAD) {
+            p->vtxz.clear();
+            double z = 0;
+            for(int i=0; i<3; i++) z += it->x[i+1]*it->x[i+1];
+            z = sqrt(z);
+            zAxis.range.expand(&z);
+            p->vtxz.push_back(z);
+        }
         
         // expand image bounding box and insert polygon
         for(auto it = p->pts.begin(); it != p->pts.end(); it++) {
@@ -200,19 +206,6 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
         g->addChild(p);
         facepoly.push_back(p);
     }
-    /*
-        // set flat-fill style z
-        if(dcmode == MAG_GRAD) {
-            p->vtxz.clear();
-            double z = C.maggrad2();
-            if(dcmode == LOG_MAG_GRAD) z = log(z < grsq_min? grsq_min : z)/2.;
-            else z = sqrt(z);
-            zAxis.range.expand(&z);
-            p->vtxz.push_back(z);
-        } else if(dcmode == PHI) {
-            //
-        }
-     */   
        
     // assign polygon colors by z
     int nsubgrad = 0;

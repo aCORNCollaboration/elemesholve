@@ -152,22 +152,13 @@ void meshgen_test() {
     slicedump.open("slices_xyz.dat", std::ios::out | std::ios::binary);
     
     MSx.calc_vtxvals(*CP.M);
-    MSx.dump_HDS(slicedump);
-    //MSx.dcmode = FEMesh3Slice::LOG_MAG_GRAD;
-    //MSx.outcoord_scale = 0.1;
-    //MSx.write_svg("slice_x.svg",*CP.M);
+    MSx.dump_HDS(slicedump,*CP.M);
     //
     MSy.calc_vtxvals(*CP.M);
-    MSy.dump_HDS(slicedump);
-    //MSy.dcmode = FEMesh3Slice::LOG_MAG_GRAD;
-    //MSy.outcoord_scale = 0.1;
-    //MSy.write_svg("slice_y.svg",*CP.M);
+    MSy.dump_HDS(slicedump,*CP.M);
     //
     MSz.calc_vtxvals(*CP.M);
-    MSz.dump_HDS(slicedump);
-    //MSz.dcmode = FEMesh3Slice::PHI;
-    //MSz.outcoord_scale = 0.1;
-    //MSz.write_svg("slice_z.svg",*CP.M);
+    MSz.dump_HDS(slicedump,*CP.M);
     
     slicedump.close();
     

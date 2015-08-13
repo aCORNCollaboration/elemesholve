@@ -37,8 +37,8 @@ void FEMesh3Slice::draw_projection() const {
     }
 }
 
-void FEMesh3Slice::dump_HDS(ostream& o) const {
-    HalfedgeDS_Builder<HDS_Vertex<3,float>, MS_HDS::Vertex_const_handle, MS_HDS::Halfedge_const_handle> B;
+void FEMesh3Slice::dump_HDS(ostream& o, const FEMesh3& F) const {
+    HalfedgeDS_Builder<HDS_Vertex<3,float>, HDS_Face<4,float>, MS_HDS::Vertex_const_handle, MS_HDS::Halfedge_const_handle> B;
     
     HDS_Vertex<3,float> v;
     for(auto it = slice.vertices_begin(); it != slice.vertices_end(); it++) {
@@ -52,7 +52,14 @@ void FEMesh3Slice::dump_HDS(ostream& o) const {
     B.enumerate_null_edge(NULL);
     for(auto it = slice.halfedges_begin(); it != slice.halfedges_end(); it++) B.enumerate_edge(it);
     for(auto it = slice.halfedges_begin(); it != slice.halfedges_end(); it++) B.setup_edge(it, it->next(), it->opposite(), it->vertex());
-    for(auto it = slice.faces_begin(); it != slice.faces_end(); it++) B.add_face(it->halfedge());
-        
+    
+    HDS_Face<4,float> f;
+    for(auto it = slice.faces_begin(); it != slice.faces_end(); it++) {
+        const FEMesh3::CM& C = F.getCell(it->myCell);
+        f.x[0] = C.area();
+        for(int i=1; i<4; i++) f.x[i] = C.psolved[i];
+        B.add_face(f,it->halfedge());
+    }
+    
     B.HDS.write(o);
 }
