@@ -27,29 +27,14 @@ public:
     double get_vtxval(MS_HDS::Vertex_const_handle h) const;
     /// draw projected with z = vtxvals
     void draw_projection() const;
-    
-    /// SVG output of projection colored by |E|
-    void write_svg(const string& fname, const FEMesh3& F) const;
-    
-    /// face coloring modes
-    enum DisplayColorMode {
-        MAG_GRAD,       ///< |E|
-        LOG_MAG_GRAD,   ///< log(|E|)
-        PHI             ///< gradient-shaded potential
-    } dcmode = LOG_MAG_GRAD;
-    
-    double vis_rmax2 = DBL_MAX;         ///< radius^2 of SVG visualization view
-    double vis_center[2] = {0,0};       ///< center of SVG visualization view
-    double outcoord_scale = 1.0;        ///< coordinate scaling for SVG output
-    bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some
-    
+    /// dump to file as binary HDS
+    void dump_HDS(ostream& o) const;
+        
 protected:
     /// calculate vertex position in plane coordinates and z height
     K::Point_3 vertex_coordinate(MS_HDS::Vertex_const_handle h) const;
 
     map<MS_HDS::Vertex_const_handle, double> vtxvals;           ///< function values at plane intersection vertices
-    double grsq_min;                                            ///< min gradient^2
-    double grsq_max;                                            ///< max gradient^2
 };
 
 #endif

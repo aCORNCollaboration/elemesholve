@@ -10,9 +10,10 @@
 
 CalculationProcess::CalculationProcess():
 YSQ(0, 10., 0.7),
-EMG(&YSQ),
-STG(&YSQ),
-myGeom(&EMG),
+myCT(NULL),
+EMG(myCT),
+STG(myCT),
+myGeom(&STG),
 GW(myGeom->theWorld),
 RadiusMesh(myGeom->theWorld, 0.5),
 domain(GW, myGeom->theWorld->myBounds, 1e-6),
@@ -45,7 +46,7 @@ void CalculationProcess::refine_mesh() {
 void CalculationProcess::setup_solver() {
     printf("Setting up solver...\n");
     myGeom->calc_bvals(c3t3);
-    M = new FEMesh3(c3t3, &YSQ);
+    M = new FEMesh3(c3t3, myCT);
     M->set_boundary_points(*myGeom);
     M->set_boundary_values(*myGeom);
 }

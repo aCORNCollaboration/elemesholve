@@ -127,12 +127,12 @@ void meshgen_test() {
     K::Plane_3 SPx(K::Point_3(0, 0, 0),   K::Vector_3(-1,0,0));
     K::Plane_3 SPy(K::Point_3(0, 0, 0),   K::Vector_3(0,1,0));
     K::Plane_3 SPz(K::Point_3(0, 0, 0.15), K::Vector_3(0,0,1));
-    FEMesh3Slice MSx(CP.c3t3, SPx, &CP.YSQ);
-    FEMesh3Slice MSy(CP.c3t3, SPy, &CP.YSQ);
-    FEMesh3Slice MSz(CP.c3t3, SPz, &CP.YSQ, 2);
+    FEMesh3Slice MSx(CP.c3t3, SPx, CP.myCT);
+    FEMesh3Slice MSy(CP.c3t3, SPy, CP.myCT);
+    FEMesh3Slice MSz(CP.c3t3, SPz, CP.myCT, 2);
     
     // Visualize
-    C3t3_Vis V(CP.c3t3, &CP.YSQ);
+    C3t3_Vis V(CP.c3t3, CP.myCT);
     V.print();
 
     vsr::startRecording(true);
@@ -147,21 +147,29 @@ void meshgen_test() {
     CP.M->solve();
     endTime = clock();
     cout << "Matrix solution calculated in " << (endTime - startTime)/float(CLOCKS_PER_SEC) << " seconds.\n";
-
+    
+    ofstream slicedump;
+    slicedump.open("slices_xyz.dat", std::ios::out | std::ios::binary);
+    
     MSx.calc_vtxvals(*CP.M);
-    MSx.dcmode = FEMesh3Slice::PHI;
-    MSx.outcoord_scale = 0.1;
-    MSx.write_svg("slice_x.svg",*CP.M);
+    MSx.dump_HDS(slicedump);
+    //MSx.dcmode = FEMesh3Slice::LOG_MAG_GRAD;
+    //MSx.outcoord_scale = 0.1;
+    //MSx.write_svg("slice_x.svg",*CP.M);
     //
     MSy.calc_vtxvals(*CP.M);
-    MSy.dcmode = FEMesh3Slice::PHI;
-    MSy.outcoord_scale = 0.1;
-    MSy.write_svg("slice_y.svg",*CP.M);
+    MSy.dump_HDS(slicedump);
+    //MSy.dcmode = FEMesh3Slice::LOG_MAG_GRAD;
+    //MSy.outcoord_scale = 0.1;
+    //MSy.write_svg("slice_y.svg",*CP.M);
     //
     MSz.calc_vtxvals(*CP.M);
-    MSz.dcmode = FEMesh3Slice::PHI;
-    MSz.outcoord_scale = 0.1;
-    MSz.write_svg("slice_z.svg",*CP.M);
+    MSz.dump_HDS(slicedump);
+    //MSz.dcmode = FEMesh3Slice::PHI;
+    //MSz.outcoord_scale = 0.1;
+    //MSz.write_svg("slice_z.svg",*CP.M);
+    
+    slicedump.close();
     
     ofstream meshdump;
     meshdump.open("mesh.dat", std::ios::out | std::ios::binary);
