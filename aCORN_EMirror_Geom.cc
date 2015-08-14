@@ -27,9 +27,9 @@ outer_radius2(outer_radius*outer_radius)
 
 AEM_MirrorBands::AEM_MirrorBands(double zm, bool c):
 continuous(c),
-mirror_radius(5.5),
+mirror_radius(5.45),
 mirror_radius2(mirror_radius*mirror_radius),
-band_period(3.0),        // nominal 0.7  cm
+band_period(0.7),        // nominal 0.7  cm
 band_gap(0.03),          // nominal 0.03 cm
 rel_gap(band_gap/band_period),
 top_band_z(-band_gap),

@@ -5,7 +5,7 @@
 // 
 // -- Michael P. Mendenhall, 2015
 
-// g++ -O3 --std=c++11 -o meshtrack -DWITH_OPENGL=1 -I${MPMUTILS}/Visualization/ -I${MPMUTILS}/Matrix/ -L${MPMUTILS}/Visualization/ meshtrack.cc CellMatrix.cc -lMPMVis -lGL -lglut -lpthread
+// g++ -O3 --std=c++11 -o meshtrack -DWITH_OPENGL=1 -I../ -I${MPMUTILS}/Visualization/ -I${MPMUTILS}/Matrix/ -L${MPMUTILS}/Visualization/ meshtrack.cc ../CellMatrix.cc -lMPMVis -lGL -lglut -lpthread
 
 #include "SimplexMesh.hh"
 #include <fstream>
@@ -50,7 +50,7 @@ void* mainThread(void*) {
     
     SimplexMesh<3,float> M;
     M.verbose = 3;
-    ifstream is("../elemesholve-bld/mesh.dat",  std::ios::in | std::ios::binary);
+    ifstream is("../../elemesholve-bld/mesh.dat",  std::ios::in | std::ios::binary);
     M.read(is);
     is.close();
     
@@ -62,7 +62,7 @@ void* mainThread(void*) {
     M.start_cells.push_back(M.locate_cell(x));
     
     M.verbose = 0;
-    ofstream o("../elemesholve-bld/scan.txt");
+    ofstream o("../../elemesholve-bld/scan.txt");
     float x0[3] = { 0, 0, -8 };
     float x1[3] = { 0, 0, 8 };
     vector<xycoord> v;

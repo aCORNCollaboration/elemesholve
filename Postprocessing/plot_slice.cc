@@ -5,7 +5,7 @@
 // 
 // -- Michael P. Mendenhall, 2015
 
-// g++ -O3 --std=c++11 -o plot_slice -I${MPMUTILS}/GeneralUtils/ -L${MPMUTILS}/GeneralUtils/ plot_slice.cc SVGSliceRenderer.cc CellMatrix.cc -lMPMGeneralUtils
+// g++ -O3 --std=c++11 -o plot_slice -I../ -I${MPMUTILS}/GeneralUtils/ -L${MPMUTILS}/GeneralUtils/ plot_slice.cc SVGSliceRenderer.cc ../CellMatrix.cc -lMPMGeneralUtils
 // ./plot_slice ../elemesholve-bld/slices_xyz.dat
 // rsvg-convert -f pdf -o slices_xyz_0.pdf slices_xyz_0.svg
 // inkscape slices_xyz_2.svg --export-pdf=slices_xyz_2.pdf

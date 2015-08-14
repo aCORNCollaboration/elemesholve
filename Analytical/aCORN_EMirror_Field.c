@@ -18,7 +18,7 @@ void init_aCORN(struct aCORN_EMirror* M) {
     M->E0 = 70;
     M->wire_radius = 0.005;
     M->wire_spacing = 0.2;
-    M->mirror_radius = 5.5;
+    M->mirror_radius = 5.45;
     M->entrance_radius = 3.26*2.54/2.;
     M->exit_radius = 3.928;
     M->plate_radius = 6.5;
