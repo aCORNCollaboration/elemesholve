@@ -14,6 +14,9 @@
 /// zeroes of J_0 Bessel function
 double bessel_j0n[MAX_BESSEL_TERMS];
 
+/// initialize J_0 zeroes array
+void init_j0n();
+
 /// calculate coefficient for a flat circular patch of radius r, unit potential on unit-radius endcap
 double flatcircle_coeff(unsigned int n, double r);
 
