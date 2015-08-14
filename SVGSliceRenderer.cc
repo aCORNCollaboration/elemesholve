@@ -180,7 +180,7 @@ void SVGSliceRenderer::write_svg(const string& fname) const {
             for(int i=0; i<2; i++) vtxpt[i] -= vis_center[i];
             if(vtxpt[0]*vtxpt[0] + vtxpt[1]*vtxpt[1] > vis_rmax2) nOutside++;
             p->addpt(vtxpt[0]*outcoord_scale, vtxpt[1]*outcoord_scale);
-            p->vtxz.push_back(1000*vtxpt[2]);
+            p->vtxz.push_back(vtxpt[2]);
             if(p->pts.size() > 4) break;
         } while(current_edge != start_edge);
         
