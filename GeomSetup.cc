@@ -25,20 +25,6 @@ void GeomSetup::add_features(Mesh_domain& D) const {
 
 ///////////////////////////////////////////////////////////
 
-WireCap::WireCap():
-wire_radius(0.005),      // nominal 0.005
-wire_radius2(wire_radius*wire_radius),
-wire_spacing(0.2),      // nominal 0.2
-entrance_radius(3.26*2.54/2.),
-entrance_radius2(entrance_radius*entrance_radius),
-exit_radius(3.928),
-outer_radius(6.5),
-outer_radius2(outer_radius*outer_radius),
-thickness(1.0),
-gridz(3*wire_radius),
-platez(gridz-wire_radius)
-{ }
-
 bool WireCap::inVolume(double x, double y, double z, double rr) const {
     if(z < platez || z > platez+thickness) return false;
     
@@ -170,17 +156,6 @@ void WireCap::add_features(Polylines& v, double sqz) const {
 
 ////////////////////////////////////////
 
-MirrorBands::MirrorBands(double zm, bool c):
-continuous(c),
-mirror_radius(5.5),
-mirror_radius2(mirror_radius*mirror_radius),
-band_period(3.0),       // nominal 0.7  cm
-band_gap(0.03),          // nominal 0.03 cm
-rel_gap(band_gap/band_period),
-top_band_z(-band_gap),
-zmin(zm)
-{ }
-
 double MirrorBands::mesh_radius(double z, double rr) const {
     if(continuous) return 1000;
     
@@ -207,19 +182,6 @@ void MirrorBands::add_features(Polylines& v) const {
         double zb = z - (band_period-band_gap);
         if(zb > zmin) zcircle(v, 0, 0, zb, mirror_radius, 1000);
     }
-}
-
-double MirrorBands::band_V(double z) const {
-    if(continuous) {
-        if(z > top_band_z) return DBL_MAX;
-        return 0.2*(top_band_z - z)/band_period;
-    }
-    
-    double bz = band_coord(z);
-    double nz = 0;
-    bz = modf(bz, &nz);
-    if(bz > 0.49*rel_gap && bz < 1-0.49*rel_gap) return nz*0.2;
-    return DBL_MAX;
 }
 
 ////////////////////////////////////////

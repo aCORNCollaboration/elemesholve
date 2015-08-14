@@ -5,6 +5,8 @@
 // 
 // -- Michael P. Mendenhall, 2015
 
+// g++ -O3 --std=c++11 -o meshtrack -DWITH_OPENGL=1 -I${MPMUTILS}/Visualization/ -I${MPMUTILS}/Matrix/ -L${MPMUTILS}/Visualization/ meshtrack.cc CellMatrix.cc -lMPMVis -lGL -lglut -lpthread
+
 #include "SimplexMesh.hh"
 #include <fstream>
 using std::ifstream;
@@ -12,8 +14,6 @@ using std::ofstream;
 #include <unistd.h>
 
 #include "Visr.hh"
-
-// g++ -O3 --std=c++11 -o meshtrack -DWITH_OPENGL=1 -I${MPMUTILS}/Visualization/ -I${MPMUTILS}/Matrix/ -L${MPMUTILS}/Visualization/ meshtrack.cc CellMatrix.cc -lMPMVis -lGL -lglut -lpthread
 
 void scan_line(SimplexMesh<3,float>& M, const float x0[3], const float x1[3], unsigned int n, ostream& o) {
     int32_t c = M.locate_cell(x0);
