@@ -20,12 +20,12 @@ int main(int argc, char** argv) {
     // array for position coordinate (x,y,z) [cm]
     // wires are spaced in x direction (0.2 cm apart), with bore axis along z
     // wireplane at z=0; mirror region z<0. x=0 is in gap between wires at +/-0.1cm.
-    double x[3] = {1.55, 0, 0};
+    double x[3] = {2.55, 2.55, 0};
     // array to hold E field values (in V/cm)
     double E[3];
     
     // scan over some points and get field
-    for(x[2]=-1; x[2]<1; x[2]+=0.01) {
+    for(x[2]=-5; x[2]<=5; x[2]+=0.1) {
         calc_aCORN_field(&M, x, E); // calculate field E(x)
         printf("%.2f\t%.2f\t%.2f\t\t%.3f\t%.3f\t%.3f\n", x[0], x[1], x[2], E[0], E[1], E[2]);
     }
