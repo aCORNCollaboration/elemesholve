@@ -18,10 +18,16 @@ double bessel_j0n[MAX_BESSEL_TERMS];
 double flatcircle_coeff(unsigned int n, double r);
 
 /// add circular patch of specified (normalized) radius, voltage to coefficients
-void addCircle(double r, double V, double coeffs[MAX_BESSEL_TERMS]);
+void addCircle(double coeffs[MAX_BESSEL_TERMS], double r, double V);
 
 /// sum Bessel terms at z,r (scaled to radius 1)
-double sumBessel(double z, double r, const double coeffs[MAX_BESSEL_TERMS]);
+double sumBessel(const double coeffs[MAX_BESSEL_TERMS], double z, double r);
+
+/// radial component dPhi/dr
+double sumBesselDerivR(const double coeffs[MAX_BESSEL_TERMS], double z, double r);
+
+/// axial component dPhi/dz
+double sumBesselDerivZ(const double coeffs[MAX_BESSEL_TERMS], double z, double r);
 
 /// coefficients for boundary conditions defined on both ends of a grounded cylinder
 struct DoubleBessel {
@@ -35,5 +41,9 @@ void initDoubleBessel(struct DoubleBessel* BB, const double c0[MAX_BESSEL_TERMS]
 
 /// sum two-ended bessel terms
 double sumDoubleBessel(const struct DoubleBessel* BB, double z, double r);
+/// two-ended bessel r derivative
+double sumDoubleBesselDR(const struct DoubleBessel* BB, double z, double r);
+/// two-ended bessel z derivative
+double sumDoubleBesselDZ(const struct DoubleBessel* BB, double z, double r);
 
 #endif
