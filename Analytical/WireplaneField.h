@@ -5,8 +5,8 @@
 // 
 // -- Michael P. Mendenhall, 2015
 
-#ifndef WIREPLANEFIELD_HH
-#define WIREPLANEFIELD_HH
+#ifndef WIREPLANEFIELD_H
+#define WIREPLANEFIELD_H
 
 /// field around wireplane producing unit field at infinity
 void wireplaneField(double r,           ///< wire radius
@@ -17,11 +17,16 @@ void wireplaneField(double r,           ///< wire radius
                     double* Eparr       ///< output for field component parallel to plane
 );
 
+/// finite wire effect voltage offset
+double wireplaneVOffset(double r,       ///< wire radius
+                        double d        ///< wirespacing
+);
+
 /// potential around (grounded) wireplane producing unit field at infinity
-double wireplanePotential(double r,           ///< wire radius
-                          double d,           ///< wirespacing
-                          double l,           ///< perpendicular distance from plane
-                          double a            ///< distance from wire center
+double wireplanePotential(double r,     ///< wire radius
+                          double d,     ///< wirespacing
+                          double l,     ///< perpendicular distance from plane
+                          double a      ///< distance from wire center
                         
 );
 

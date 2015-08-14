@@ -9,7 +9,6 @@
 #include <gsl/gsl_sf_bessel.h>
 #include <math.h>
 #include <assert.h>
-#include <stdio.h>
 
 void init_j0n() {
     unsigned int n;
@@ -104,32 +103,4 @@ double sumDoubleBesselDR(const struct DoubleBessel* BB, double z, double r) {
 
 double sumDoubleBesselDZ(const struct DoubleBessel* BB, double z, double r) {
     return sumBesselDerivZ(BB->c0, z, r) - sumBesselDerivZ(BB->c1, BB->dz-z, r);
-}
-
-/////////////////////////
-
-// gcc -O3 -o EndBesselCalc EndBesselCalc.c WireplaneField.c -lgsl -lblas -lm
-
-int main(int argc, char** argv) {
-    init_j0n();
-    
-    double c0[MAX_BESSEL_TERMS] = {0};
-    double c1[MAX_BESSEL_TERMS] = {0};
-    
-    addCircle(c0, 1, 1.0);
-    
-    struct DoubleBessel BB;
-    BB.dz = 1;
-    initDoubleBessel(&BB, c0, c1);
-    
-    double z;
-    double r = 0.3;
-    for(z=0; z<1; z+=0.01) {
-        printf("z=%.3f\tr=%.2f:\t%.3f\tEz=%.4f\tEr=%.4f\n",
-               z, r, sumDoubleBessel(&BB, z, r),
-               sumDoubleBesselDZ(&BB, z, r),
-               sumDoubleBesselDR(&BB, z, r) );
-    }
-    
-    return 0;
 }

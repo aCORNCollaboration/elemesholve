@@ -19,12 +19,16 @@ void wireplaneField(double r, double d, double l, double a, double* Eperp, doubl
     *Eparr = sin(c2)/cosh(c1)/denom;
 }
 
+double wireplaneVOffset(double r, double d) {
+    return d/M_PI * log(d/(2*M_PI*r));
+}
+
 double wireplanePotential(double r, double d, double l, double a) {
     a = fmod(a,d);
     if(a*a + l*l < r*r) return 0;
     
     double c1 = M_PI*l/d;
-    if(c1 > 20) return l + d*log(d/(2*M_PI*r))/M_PI;    // asymptotic limit
+    if(c1 > 20) return l + wireplaneVOffset(r,d);       // asymptotic limit
     
     double V = d/M_PI * log(sinh(c1) / sinh(M_PI*r/d)); // integrate Eperp at constant a=0
     double csh = cosh(2*c1);
