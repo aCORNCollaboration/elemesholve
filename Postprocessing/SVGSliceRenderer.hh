@@ -59,7 +59,9 @@ class SVGSliceRenderer: public HalfedgeFatDS< HDS_Vertex<3,float>, HDS_Face<4,fl
 public:
     /// Constructor
     SVGSliceRenderer() { }
-
+    /// Destructor
+    ~SVGSliceRenderer() { if(mesh_vis) mesh_vis->release(); }
+    
     /// face coloring modes
     enum DisplayColorMode {
         MAG_GRAD,       ///< |E|
@@ -73,7 +75,9 @@ public:
     double vis_center[2] = {0,0};       ///< center of SVG visualization view
     double axis_direction[3] = {0,0,1}; ///< direction for axial/transverse components
     double outcoord_scale = 1.0;        ///< coordinate scaling for SVG output
-    bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some
+    bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some 
+    bool orientation = true;            ///< CCW or CW element orientation
+    SVG::group* mesh_vis = NULL;        ///< mesh lines, prior to mesh gradient recombination
     SVGGradientAxis zAxis;              ///< color z axis
     
     /// read in data file
@@ -84,6 +88,9 @@ public:
     
     /// pre-scan vertices for z range
     void prescan_phi_range();
+    
+    /// generate mesh image
+    void makeMeshVis(double wmin = 0);
     
     /// merge regions sharing common phi gradient
     virtual void merge_gradient_regions(double tol = 0.01);

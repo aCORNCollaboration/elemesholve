@@ -14,6 +14,34 @@ class SVGFacePoly: public SVG::polygon {
 public:
     /// Constructor
     SVGFacePoly(const string& st = ""): SVG::polygon(st) { }
+    
+    /// expand dimensions to cover up gaps
+    void expand(double mul = -0.01) {
+        vector< pair<double,double> > offsets;
+        double dx,dy;
+        for(size_t i=0; i<pts.size(); i++) {
+            size_t iprev = (i==0? pts.size()-1 : i-1);
+            size_t inext = (i==pts.size()-1?  0 : i+1);
+            dx = pts[inext].first - pts[iprev].first;
+            dy = pts[inext].second - pts[iprev].second;
+            offsets.push_back(pair<double, double>(dy*mul, -dx*mul));
+        }
+        for(size_t i=0; i<pts.size(); i++) {
+            pts[i].first += offsets[i].first;
+            pts[i].second += offsets[i].second;
+        }
+        
+    }
+    
+    double orientation_sum() const {
+        double s = 0; 
+        for(size_t i=0; i<pts.size(); i++) {
+            size_t iprev = (i==0? pts.size()-1 : i-1);
+            s += (pts[i].first - pts[iprev].first)*(pts[i].second + pts[iprev].second);
+        }
+        return s;
+    }
+    
     vector<double> vtxz;        ///< vertex z info for coloring
     index_tp face;              ///< face index in HDS 
 };
@@ -37,7 +65,6 @@ SVGGradientAxis::SVGGradientAxis() {
     Gaxis->attrs["id"] = "Gaxis";
     Gaxis->attrs["gradientTransform"] = "rotate(-90) translate(-1 0)";
     Gaxis->attrs["xlink:href"] = "#"+base_gradient->attrs["id"];
-    //Gaxis->attrs["gradientUnits"] = "objectBoundingBox"; // should need this? but causes problems?
     axisGroup->addChild(Gaxis);
     
     // gradient rectangle
@@ -49,7 +76,7 @@ SVGGradientAxis::SVGGradientAxis() {
 }
 
 double SVGGradientAxis::axisUnits(double x) const { 
-    if(logscale) return log(x/range.lo[0]) / log(range.hi[0]/range.lo[0]);
+    if(logscale) return x > 0? log(x/range.lo[0]) / log(range.hi[0]/range.lo[0]) : -100;
     return (x-range.lo[0])/range.dl(0);
 }
 double SVGGradientAxis::dAxisUnits(double x) const {
@@ -85,10 +112,37 @@ string SVGGradientAxis::gradient_remap(const PlaneEquation<2,float>& P) const {
 
 void SVGSliceRenderer::prescan_phi_range() {
     for(auto it = vertices.begin(); it != vertices.end(); it++) {
+        if(pow(it->x[0]-vis_center[0],2) + pow(it->x[1]-vis_center[1],2) > vis_rmax2) continue;
         double z = it->x[2];
         zAxis.range.expand(&z);
     }
     cout << "Z range: " << zAxis.range.lo[0] << " -- " << zAxis.range.hi[0] << "\n";
+}
+
+void SVGSliceRenderer::makeMeshVis(double wmin) {
+    if(mesh_vis) mesh_vis->release();
+    mesh_vis = new SVG::group();
+    mesh_vis->retain();
+    mesh_vis->attrs["style"]="stroke:black;stroke-opacity:0.25;stroke-linecap:round"; 
+    cout << "Drawing " << edges.size()/2 << " edges...\n";
+    ProgressBar* PB = new ProgressBar(edges.size(), edges.size()/20);
+    int nedges = 0; 
+    for(index_tp e = 0; e < edges.size(); e++) {
+        PB->update(nedges++);
+        index_tp eopp = edges[e].opposite;
+        if(eopp <= e) continue;
+        double w = 0.05*pow(faces[edges[e].face].x[0], 1./3.);
+        if(w<wmin) continue;
+        HDS_Vertex<3,float>& v1 = vertices[edges[e].vtx];
+        HDS_Vertex<3,float>& v2 = vertices[edges[eopp].vtx];
+        SVG::line* l = new SVG::line(outcoord_scale*v1.x[0],
+                                     outcoord_scale*v1.x[1], 
+                                     outcoord_scale*v2.x[0], 
+                                     outcoord_scale*v2.x[1]);
+        l->attrs["stroke-width"] = to_str(outcoord_scale*w);
+        mesh_vis->addChild(l);
+    }
+    delete PB;
 }
 
 void SVGSliceRenderer::write_svg(const string& fname) {
@@ -101,6 +155,7 @@ void SVGSliceRenderer::write_svg(const string& fname) {
     XMLBuilder::indent = "\t";
     SVG::svg s;
     s.addChild(new SVG::title("elemesholve slice"));
+    //s.attrs["shape-rendering"] = "crispEdges"; // "geometricPrecision";
     
     // style definitions group
     SVG::defs* d = new SVG::defs();
@@ -111,15 +166,16 @@ void SVGSliceRenderer::write_svg(const string& fname) {
     
     // face polygons group
     SVG::group* g = new SVG::group();
-    bool stroke_borders = false;
-    if(stroke_borders) g->attrs["style"]="stroke:black;stroke-opacity:0.15;stroke-width:0.002;stroke-linejoin:round";
     s.addChild(g);
+    
+    if(mesh_vis) s.addChild(mesh_vis);
     
     BBox<2,double> BB = empty_double_bbox<2>(); // image range bounding box
     
     double vtxpt[3];
     vector<SVGFacePoly*> facepoly; // face polygons for color assignment
     int nfaces = 0;
+    int noriented[2] = {0,0};
     cout << "Drawing " << faces.size() << " faces...\n";
     ProgressBar* PB = new ProgressBar(2*faces.size(), faces.size()/20);
     for(auto it = faces.begin(); it != faces.end(); it++) {
@@ -151,6 +207,8 @@ void SVGSliceRenderer::write_svg(const string& fname) {
             continue;
         }
         
+        noriented[p->orientation_sum() > 0]++;
+        
         // collect appropriate data
         if(dcmode == PHI) for(auto it = p->vtxz.begin(); it != p->vtxz.end(); it++) zAxis.range.expand(&*it);
         else {
@@ -180,6 +238,8 @@ void SVGSliceRenderer::write_svg(const string& fname) {
         g->addChild(p);
         facepoly.push_back(p);
     }
+    //cout << "Orientation: " << noriented[0] << " and " << noriented[1] << "\n";
+    orientation = noriented[0] > noriented[1];
     
     // assign polygon colors by z
     zAxis.finalize();
@@ -188,9 +248,11 @@ void SVGSliceRenderer::write_svg(const string& fname) {
         PB->update(nfaces++);
         SVGFacePoly* p = *it;
         if(!p->vtxz.size()) continue;
+        p->expand(orientation? 0.02 : -0.02);
         
         // apply flat or gradient fill
         if(p->vtxz.size() == 1) {
+            p->vtxz[0] = zAxis.axisUnits(p->vtxz[0]);
             p->vtxz[0] = p->vtxz[0]<0? 0 : p->vtxz[0]>1? 1 : p->vtxz[0];
             p->attrs["fill"] = "#"+color::rgb(zAxis.G.hsvcolor(p->vtxz[0])).asHexString();
         } else if(p->vtxz.size() >= 3) {

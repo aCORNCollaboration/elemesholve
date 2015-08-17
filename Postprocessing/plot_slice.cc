@@ -26,11 +26,15 @@ int main(int argc, char** argv) {
         SVGSliceRenderer SR;
         SR.outcoord_scale = 0.1;
         SR.dcmode = SVGSliceRenderer::TRANSVERSE;
-        if(i<3) SR.dcmode = SVGSliceRenderer::PHI;
-        //SR.zAxis.logscale = i<2;
+        if(i==2) SR.dcmode = SVGSliceRenderer::PHI;
+        else SR.zAxis.logscale = true;
         
         SR.read(is);
-        if(SR.dcmode == SVGSliceRenderer::PHI) SR.merge_gradient_regions(0.01);
+        if(SR.dcmode == SVGSliceRenderer::PHI) {
+            //SR.makeMeshVis(0.001);
+            SR.vis_rmax2 = 5.5*5.5;
+            SR.merge_gradient_regions(0.05);
+        }
         
         string outfl = dropLast(infl,".")+"_"+to_str(i)+".svg";
         SR.write_svg(outfl);
