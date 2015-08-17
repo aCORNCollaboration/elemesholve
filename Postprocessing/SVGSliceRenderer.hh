@@ -77,6 +77,7 @@ public:
     double outcoord_scale = 1.0;        ///< coordinate scaling for SVG output
     bool vis_all_inside = true;         ///< whether to require all points to be in vis_rmax2, or just some 
     bool orientation = true;            ///< CCW or CW element orientation
+    bool autoscale = true;              ///< whether to auto-expand axis range
     SVG::group* mesh_vis = NULL;        ///< mesh lines, prior to mesh gradient recombination
     SVGGradientAxis zAxis;              ///< color z axis
     

@@ -209,9 +209,8 @@ void SVGSliceRenderer::write_svg(const string& fname) {
         
         noriented[p->orientation_sum() > 0]++;
         
-        // collect appropriate data
-        if(dcmode == PHI) for(auto it = p->vtxz.begin(); it != p->vtxz.end(); it++) zAxis.range.expand(&*it);
-        else {
+        // collect appropriate data         
+        if(dcmode != PHI) {
             p->vtxz.clear();
             double z = 0;
             if(dcmode == MAG_GRAD || dcmode == TRANSVERSE) {
@@ -225,9 +224,12 @@ void SVGSliceRenderer::write_svg(const string& fname) {
                     z = sqrt(z - z2*z2);
                 } else z = z2;
             }
-            zAxis.range.expand(&z);
+            if(autoscale) zAxis.range.expand(&z);
             p->vtxz.push_back(z);
         }
+        if(autoscale) 
+            for(auto it = p->vtxz.begin(); it != p->vtxz.end(); it++) 
+                zAxis.range.expand(&*it);
         
         // expand image bounding box and insert polygon
         for(auto it = p->pts.begin(); it != p->pts.end(); it++) {
@@ -310,7 +312,7 @@ bool gradient_merge(index_tp e, void* params) {
 
 void SVGSliceRenderer::merge_gradient_regions(double tol) {
     
-    prescan_phi_range();
+    if(autoscale) prescan_phi_range();
     gradient_merge_params gmp;
     gmp.S = this;
     gmp.tol = zAxis.range.dl(0) * tol;

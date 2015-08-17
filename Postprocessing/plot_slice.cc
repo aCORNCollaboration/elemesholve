@@ -26,8 +26,19 @@ int main(int argc, char** argv) {
         SVGSliceRenderer SR;
         SR.outcoord_scale = 0.1;
         SR.dcmode = SVGSliceRenderer::TRANSVERSE;
-        if(i==2) SR.dcmode = SVGSliceRenderer::PHI;
-        else SR.zAxis.logscale = true;
+        SR.autoscale = false;
+        double zmin,zmax;
+        if(i==2) {
+            SR.dcmode = SVGSliceRenderer::PHI;
+            zmin = 0;
+            zmax = 3.5;
+        } else {
+            SR.zAxis.logscale = true;
+            zmin = 0.005;
+            zmax = 500;
+        }
+        SR.zAxis.range.expand(&zmin);
+        SR.zAxis.range.expand(&zmax);
         
         SR.read(is);
         if(SR.dcmode == SVGSliceRenderer::PHI) {
