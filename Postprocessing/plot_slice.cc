@@ -6,7 +6,7 @@
 // -- Michael P. Mendenhall, 2015
 
 // g++ -O3 --std=c++11 -o plot_slice -I../ -I${MPMUTILS}/GeneralUtils/ -L${MPMUTILS}/GeneralUtils/ plot_slice.cc SVGSliceRenderer.cc ../CellMatrix.cc -lMPMGeneralUtils
-// ./plot_slice ../elemesholve-bld/slices_xyz.dat
+// ./plot_slice ../../elemesholve-bld/slices_xyz.dat
 // rsvg-convert -f pdf -o slices_xyz_0.pdf slices_xyz_0.svg
 // inkscape slices_xyz_2.svg --export-pdf=slices_xyz_2.pdf
 
@@ -26,10 +26,11 @@ int main(int argc, char** argv) {
         SVGSliceRenderer SR;
         SR.outcoord_scale = 0.1;
         SR.dcmode = SVGSliceRenderer::TRANSVERSE;
-        if(i==2) SR.dcmode = SVGSliceRenderer::PHI;
-        SR.logscale = i<2;
+        if(i<3) SR.dcmode = SVGSliceRenderer::PHI;
+        //SR.zAxis.logscale = i<2;
         
         SR.read(is);
+        if(SR.dcmode == SVGSliceRenderer::PHI) SR.merge_gradient_regions(0.01);
         
         string outfl = dropLast(infl,".")+"_"+to_str(i)+".svg";
         SR.write_svg(outfl);

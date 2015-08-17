@@ -12,6 +12,8 @@
 using std::vector;
 #include <map>
 using std::map;
+#include <set>
+using std::set;
 #include <iostream>
 using std::ostream;
 using std::istream;
@@ -117,9 +119,20 @@ public:
     HalfedgeFatDS() { }
     /// load from file
     virtual void read(istream& is) { HalfedgeDS<vtx_tp, face_tp, edge_tp>::read(is); fill_FatEdges(); }
+    
+    /// remove an edge; merge adjacent face into this one
+    virtual void deleteEdge(index_tp e);
+    /// merge faces across indicated edge, removing any "stub" edges
+    virtual void mergeFace(index_tp e);
+    
+    /// recursively expand face f0 to all ajoining "matching" faces (specified by edge index)
+    void expand_merge(index_tp f0, bool (*match)(index_tp, void*), void* params);
+    
 protected:
     /// compute face and reverse info in HDS_FatEdge
     virtual void fill_FatEdges();
+    /// link edges as prev/next to each other
+    virtual void link(index_tp e0, index_tp e1) { this->edges[e0].next = e1; this->edges[e1].prev = e0; }
 };
 
 /// Helper class for building HDS from alternate version
@@ -229,6 +242,115 @@ void HalfedgeFatDS<vtx_tp, face_tp, edge_tp>::fill_FatEdges() {
         } while(current_edge != init_edge);
         facenum++;
     }
+}
+
+template<class vtx_tp, class face_tp, class edge_tp>
+void HalfedgeFatDS<vtx_tp, face_tp, edge_tp>::deleteEdge(index_tp e) {
+    vector<edge_tp>& edges = this->edges;
+    vector<face_tp>& faces = this->faces;
+    
+    index_tp eopp = edges[e].opposite;
+    assert(eopp); // make sure this is a complete edge!
+    index_tp f0 = edges[e].face;
+    assert(f0 != -1);
+    
+    // special case for stub edge
+    if(f0 == edges[eopp].face) {
+        index_tp ef = faces[f0].edge;
+        if(edges[e].next == eopp) {
+            link(edges[e].prev, edges[eopp].next);
+            if(ef == e || ef == eopp) faces[f0].edge = edges[e].prev;
+        } else if(edges[eopp].next == e) {
+            link(edges[eopp].prev, edges[e].next);
+            if(ef == e || ef == eopp) faces[f0].edge = edges[e].next;
+        } else assert(false); // don't disconnect non-stubs!
+        link(e,eopp);
+        link(eopp,e);
+        edges[e].face = edges[eopp].face = -1;
+        return;
+    }
+    
+    // re-label other edges in adjacent face
+    index_tp e1 = edges[eopp].next;
+    do {
+        edges[e1].face = f0;
+        e1 = edges[e1].next;
+    } while(e1 != eopp);
+    
+    // update connections
+    link(edges[e].prev, edges[eopp].next);
+    link(edges[eopp].prev, edges[e].next);
+    link(e,eopp);
+    link(eopp,e);
+    
+    faces[edges[eopp].face].edge = 0;
+    edges[e].face = edges[eopp].face = -1;
+    if(faces[f0].edge == e) faces[f0].edge = edges[e].next;
+}
+
+template<class vtx_tp, class face_tp, class edge_tp>
+void HalfedgeFatDS<vtx_tp, face_tp, edge_tp>::mergeFace(index_tp e) {
+    vector<edge_tp>& edges = this->edges;
+    
+    set<index_tp> stub_candidates;
+    stub_candidates.insert(edges[e].next);
+    index_tp eopp = edges[e].opposite;
+    stub_candidates.insert(edges[eopp].next);
+    index_tp f0 = edges[e].face;
+    assert(f0 != -1);
+    deleteEdge(e);
+    
+    while(stub_candidates.size()) {
+        e = *stub_candidates.begin();
+        stub_candidates.erase(stub_candidates.begin());
+        if(edges[e].face == -1) continue;
+        if(edges[edges[e].opposite].next == e) {
+            assert(edges[e].next != e);
+            stub_candidates.insert(edges[e].next);
+            deleteEdge(e);
+        }
+    }
+}
+
+template<class vtx_tp, class face_tp, class edge_tp>
+void HalfedgeFatDS<vtx_tp, face_tp, edge_tp>::expand_merge(index_tp f0, bool (*match)(index_tp, void*), void* params) {
+    vector<edge_tp>& edges = this->edges;
+    vector<face_tp>& faces = this->faces;
+    
+    set<index_tp> to_check;     // candidate edges for merging
+    
+    // edges of starting face
+    assert(f0 != -1);
+    index_tp e = faces[f0].edge;
+    while(!to_check.count(e)) {
+        to_check.insert(e);
+        e = edges[e].next;
+    }
+    
+    while(to_check.size()) {
+        e = *to_check.begin();
+        to_check.erase(to_check.begin());
+        index_tp f1 = edges[edges[e].opposite].face; // candidate merge face
+        if(f1 == -1) continue;
+        //cout << "Considering face " << f1 << "\n";
+        
+        // decide whether to merge face
+        if(f1 == f0) continue;
+        if(!match(e, params)) continue;
+        //cout << "\tMerging face " << f1 << " into " << f0 << "\n";
+        
+        // expand edges search list to new face
+        index_tp eopp = edges[e].opposite;
+        index_tp e1 = edges[eopp].next;
+        while(e1 != eopp) {
+            to_check.insert(e1);
+            e1 = edges[e1].next;
+        }
+        
+        // merge face
+        mergeFace(e);
+    }
+    
 }
 
 #endif
