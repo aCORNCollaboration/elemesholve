@@ -67,6 +67,7 @@ public:
         MAG_GRAD,       ///< |E|
         DOT_AXIAL,      ///< component of E along axis vector
         TRANSVERSE,     ///< magnitude of E transverse to axis vector
+        MEAN_PHI,       ///< vertex-mean potential
         PHI             ///< gradient-shaded potential
     } dcmode = MAG_GRAD;        ///< mode for color data
     

@@ -25,6 +25,7 @@ double wireplaneVOffset(double r, double d) {
 
 double wireplanePotential(double r, double d, double l, double a) {
     a = fmod(a,d);
+    l = fabs(l);
     if(a*a + l*l < r*r) return 0;
     
     double c1 = M_PI*l/d;

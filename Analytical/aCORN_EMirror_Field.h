@@ -12,7 +12,8 @@
 
 /// Simplified aCORN electrostatic mirror geometry. Wires at z=0.
 struct aCORN_EMirror {
-    double E0;                  ///< asymptotic field (V/cm) inside mirror
+    double E0;                  ///< asymptotic field [V/cm] inside mirror
+    double V0;                  ///< finite-wire-size-induced potential offset [V]
     double wire_radius;         ///< grid wire radius [cm]
     double wire_spacing;        ///< spacing between wires [cm]
     double mirror_radius;       ///< radius of mirror bands
@@ -27,7 +28,10 @@ struct aCORN_EMirror {
 /// initialize aCORN fields struct
 void init_aCORN(struct aCORN_EMirror* M);
 
-/// calculate electric field [V/cm] at specified [x,y,z] position. Wires spaced in x, centered at z=0; negative z inside mirror.
+/// calculate electric field [V/cm] at specified (x,y,z) [cm] position. Wires spaced in x, centered at z=0; negative z inside mirror.
 void calc_aCORN_field(struct aCORN_EMirror* M, const double x[3], double E[3]);
+
+/// calculate electical potential [V] at specified (x,y,z) [cm] position.
+double calc_aCORN_potential(struct aCORN_EMirror* M, const double x[3]);
 
 #endif

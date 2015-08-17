@@ -211,8 +211,12 @@ void SVGSliceRenderer::write_svg(const string& fname) {
         
         // collect appropriate data         
         if(dcmode != PHI) {
-            p->vtxz.clear();
             double z = 0;
+            if(dcmode == MEAN_PHI) {
+                for(auto it = p->vtxz.begin(); it != p->vtxz.end(); it++) z += *it;
+                z /= p->vtxz.size();
+            }
+            p->vtxz.clear();
             if(dcmode == MAG_GRAD || dcmode == TRANSVERSE) {
                 for(int i=0; i<3; i++) z += it->x[i+1]*it->x[i+1];
                 if(dcmode == MAG_GRAD) z = sqrt(z);
@@ -224,6 +228,7 @@ void SVGSliceRenderer::write_svg(const string& fname) {
                     z = sqrt(z - z2*z2);
                 } else z = z2;
             }
+
             if(autoscale) zAxis.range.expand(&z);
             p->vtxz.push_back(z);
         }

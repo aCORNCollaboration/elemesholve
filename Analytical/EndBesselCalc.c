@@ -10,6 +10,9 @@
 #include <math.h>
 #include <assert.h>
 
+/// zeroes of J_0 Bessel function
+double bessel_j0n[MAX_BESSEL_TERMS];
+
 void init_j0n() {
     unsigned int n;
     bessel_j0n[0] = 0;

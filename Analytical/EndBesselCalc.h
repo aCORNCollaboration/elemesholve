@@ -11,9 +11,6 @@
 /// maximum number of terms to compute
 #define MAX_BESSEL_TERMS 1024
 
-/// zeroes of J_0 Bessel function
-double bessel_j0n[MAX_BESSEL_TERMS];
-
 /// initialize J_0 zeroes array
 void init_j0n();
 

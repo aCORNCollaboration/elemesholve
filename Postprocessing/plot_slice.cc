@@ -5,12 +5,18 @@
 // 
 // -- Michael P. Mendenhall, 2015
 
-// g++ -O3 --std=c++11 -o plot_slice -I../ -I${MPMUTILS}/GeneralUtils/ -L${MPMUTILS}/GeneralUtils/ plot_slice.cc SVGSliceRenderer.cc ../CellMatrix.cc -lMPMGeneralUtils
+/*
+g++ -O3 --std=c++11 -o plot_slice -I../ -I../Analytical -I${MPMUTILS}/GeneralUtils/ -L${MPMUTILS}/GeneralUtils/ \
+plot_slice.cc SVGAnalyticalRenderer.cc SVGSliceRenderer.cc ../CellMatrix.cc ../Analytical/aCORN_EMirror_Field.c \
+../Analytical/EndBesselCalc.c ../Analytical/WireplaneField.c -lgsl -lblas -lm -lMPMGeneralUtils
+*/
+
 // ./plot_slice ../../elemesholve-bld/slices_xyz.dat
 // rsvg-convert -f pdf -o slices_xyz_0.pdf slices_xyz_0.svg
 // inkscape slices_xyz_2.svg --export-pdf=slices_xyz_2.pdf
 
 #include "SVGSliceRenderer.hh"
+#include "SVGAnalyticalRenderer.hh"
 #include "StringManip.hh"
 #include <stdio.h>
 
@@ -25,22 +31,32 @@ int main(int argc, char** argv) {
     for(int i=0; i<3; i++) {
         SVGSliceRenderer SR;
         SR.outcoord_scale = 0.1;
-        SR.dcmode = SVGSliceRenderer::TRANSVERSE;
-        SR.autoscale = false;
-        double zmin,zmax;
+        SR.dcmode = SVGSliceRenderer::MEAN_PHI; //TRANSVERSE;
+        SR.autoscale = true;
+        double zmin=0, zmax=0;
         if(i==2) {
             SR.dcmode = SVGSliceRenderer::PHI;
             zmin = 0;
             zmax = 3.5;
-        } else {
+        }
+        
+        if(SR.dcmode == SVGSliceRenderer::MEAN_PHI) {
+            zmin = 0;
+            zmax = 700;
+        }
+        
+        if(SR.dcmode == SVGSliceRenderer::TRANSVERSE) {
             SR.zAxis.logscale = true;
             zmin = 0.005;
             zmax = 500;
         }
+        
         SR.zAxis.range.expand(&zmin);
         SR.zAxis.range.expand(&zmax);
         
         SR.read(is);
+        load_aCORN_simfield(SR);
+        
         if(SR.dcmode == SVGSliceRenderer::PHI) {
             //SR.makeMeshVis(0.001);
             SR.vis_rmax2 = 5.5*5.5;

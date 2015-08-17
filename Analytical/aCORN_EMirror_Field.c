@@ -24,18 +24,18 @@ void init_aCORN(struct aCORN_EMirror* M) {
     M->plate_radius = 6.5;
     M->bore_radius = 10.;
     
-    double V0 = wireplaneVOffset(M->wire_radius, M->wire_spacing) * M->E0/2;
-    printf("Initializing aCORN geometry with mirror field %g V/cm, finite wire effect %.2f V.\n", M->E0, V0);
+    M->V0 = wireplaneVOffset(M->wire_radius, M->wire_spacing) * M->E0/2;
+    printf("Initializing aCORN geometry with mirror field %g V/cm, finite wire effect %.2f V.\n", M->E0, M->V0);
     
     unsigned int n;
     for(n=0; n<MAX_BESSEL_TERMS; n++) M->lowerField[n] = 0;
-    addCircle(M->lowerField, M->entrance_radius / M->mirror_radius, V0);
+    addCircle(M->lowerField, M->entrance_radius / M->mirror_radius, M->V0);
     
     double c0[MAX_BESSEL_TERMS] = {0};
     double c1[MAX_BESSEL_TERMS] = {0};
-    addCircle(c0, 1, 4*V0);
-    addCircle(c0, M->plate_radius / M->bore_radius, -4*V0);
-    addCircle(c0, M->exit_radius / M->bore_radius, V0);
+    addCircle(c0, 1, 4*M->V0);
+    addCircle(c0, M->plate_radius / M->bore_radius, -4*M->V0);
+    addCircle(c0, M->exit_radius / M->bore_radius, M->V0);
     M->upperField.dz = 1;
     initDoubleBessel(&M->upperField, c0, c1);
 }
@@ -76,4 +76,34 @@ void calc_aCORN_field(struct aCORN_EMirror* M, const double x[3], double E[3]) {
     }
 }
 
-
+double calc_aCORN_potential(struct aCORN_EMirror* M, const double x[3]) {
+    double phi = 0;
+    
+    // wireplane
+    phi = wireplanePotential(M->wire_radius,
+                             M->wire_spacing,
+                             x[2], x[0] + 0.5*M->wire_spacing    // note shift so x=0 falls between wires
+                             )*M->E0/2;
+    
+    // main mirror field
+    phi += -x[2]*M->E0/2;
+        
+    // subtract this off now... added back in by Bessel expansions
+    phi -= M->V0;
+    
+    // matching to wall boundary conditions
+    double r = sqrt(x[0]*x[0] + x[1]*x[1]); // radial coordinate
+    if(x[2] < 0) {
+        double znorm = -x[2]/M->mirror_radius;
+        double rnorm = r/M->mirror_radius;
+        if(znorm < 2e-3) znorm = 2e-3;
+        phi += sumBessel(M->lowerField, znorm, rnorm);
+    } else if(x[2] < 0.999*M->bore_radius) {
+        double znorm = x[2]/M->bore_radius;
+        double rnorm = r/M->bore_radius;
+        if(znorm < 2e-3) znorm = 2e-3;
+        phi += sumDoubleBessel(&M->upperField, znorm, rnorm);
+    }
+    
+    return (phi == phi)? phi : 0;
+}
