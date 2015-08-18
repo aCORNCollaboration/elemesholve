@@ -21,9 +21,11 @@ M(MM), P(PP), myIntersectionHandler(PP, slice, CT), findndomains(nd) {
     K::Vector_3 b0 = P.base1();
     double n0 = 1./sqrt(b0.squared_length());
     pcoords[0] = K::Vector_3(b0.x()*n0, b0.y()*n0, b0.z()*n0);
+    
     K::Vector_3 b1 = P.base2();
     double n1 = 1./sqrt(b1.squared_length());
     pcoords[1] = K::Vector_3(b1.x()*n1, b1.y()*n1, b1.z()*n1);
+    
     K::Vector_3 b2 = P.orthogonal_vector();
     double n2 = 1./sqrt(b2.squared_length());
     pcoords[2] = K::Vector_3(b2.x()*n2, b2.y()*n2, b2.z()*n2); 

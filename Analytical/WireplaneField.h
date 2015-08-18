@@ -27,7 +27,6 @@ double wireplanePotential(double r,     ///< wire radius
                           double d,     ///< wirespacing
                           double l,     ///< perpendicular distance from plane
                           double a      ///< distance from wire center
-                        
 );
 
 #endif

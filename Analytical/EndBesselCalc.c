@@ -55,7 +55,7 @@ double _sumBessel(unsigned int n, void* zr) {
 double sumBessel(const double coeffs[MAX_BESSEL_TERMS], double z, double r) {
     if(r >= 1) return 0;
     double zr[2] = {z,r};
-    return coeffSum(coeffs, &_sumBessel, zr, 1e-5, 1e-6);
+    return coeffSum(coeffs, &_sumBessel, zr, 1e-4, 1e-5);
 }
 
 double _sumBesselDerivR(unsigned int n, void* zr) {
@@ -67,7 +67,7 @@ double _sumBesselDerivR(unsigned int n, void* zr) {
 double sumBesselDerivR(const double coeffs[MAX_BESSEL_TERMS], double z, double r) {
     if(r >= 1) return 0;
     double zr[2] = {z,r};
-    return coeffSum(coeffs, &_sumBesselDerivR, zr, 1e-5, 1e-6);
+    return coeffSum(coeffs, &_sumBesselDerivR, zr, 1e-4, 1e-5);
 }
 
 double _sumBesselDerivZ(unsigned int n, void* zr) {
@@ -79,7 +79,7 @@ double _sumBesselDerivZ(unsigned int n, void* zr) {
 double sumBesselDerivZ(const double coeffs[MAX_BESSEL_TERMS], double z, double r) {
     if(r >= 1) return 0;
     double zr[2] = {z,r};
-    return coeffSum(coeffs, &_sumBesselDerivZ, zr, 1e-5, 1e-6);
+    return coeffSum(coeffs, &_sumBesselDerivZ, zr, 1e-4, 1e-5);
 }
                                 
 ////////////////////////////////////////////////////////////

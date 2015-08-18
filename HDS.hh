@@ -100,6 +100,10 @@ public:
     /// Constructor
     HalfedgeDS() { }
     
+    typedef vtx_tp Vertex;
+    typedef face_tp Face;
+    typedef edge_tp Edge;
+    
     vector<vtx_tp> vertices;    ///< enumerated vertices
     vector<edge_tp> edges;      ///< enumerated halfedges; edge 0 reserved for "unpaired"
     vector<face_tp> faces;      ///< faces

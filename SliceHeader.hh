@@ -8,6 +8,9 @@
 #ifndef SLICEHEADER_HH
 #define SLICEHEADER_HH
 
+#include <iostream>
+using std::cout;
+
 /// Header information for a (hyper)plane
 template<size_t D, typename val_tp>
 class SliceHeader {
@@ -27,6 +30,16 @@ public:
     void write(ostream& o) const {
         o.write((char*)x, D*sizeof(x[0]));
         for(size_t i=0; i<D; i++) o.write((char*)basis[i], D*sizeof(basis[0][0]));
+    }
+    /// display information
+    void display() const {
+        cout << "Origin :";
+        for(size_t i=0; i<D; i++) cout << "\t" << x[i];
+        for(size_t i=0; i<D; i++) {
+            cout << "\nbasis " << i << ":";
+            for(size_t j=0; j<D; j++) cout << "\t" << basis[i][j];
+        }
+        cout << "\n";
     }
 };
 

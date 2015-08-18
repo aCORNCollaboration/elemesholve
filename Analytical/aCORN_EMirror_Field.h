@@ -16,6 +16,7 @@ struct aCORN_EMirror {
     double V0;                  ///< finite-wire-size-induced potential offset [V]
     double wire_radius;         ///< grid wire radius [cm]
     double wire_spacing;        ///< spacing between wires [cm]
+    double wire_shift;          ///< set to 0 for wire at x=0; set to 0.5 for gap centered at x=0
     double mirror_radius;       ///< radius of mirror bands
     double entrance_radius;     ///< wire grid entrance (proton direction) radius [cm]
     double exit_radius;         ///< wire grid exit radius [cm]
