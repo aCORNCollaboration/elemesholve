@@ -10,6 +10,7 @@
 
 #include "GeomDef.hh"
 #include "aCORN_EMirror_Geom.hh"
+#include "RoundRect.hh"
 #include "FEMesh.hh"
 
 /// Base class for 3D geometry setup
@@ -80,12 +81,26 @@ public:
 class MirrorBands: public AEM_MirrorBands {
 public:
     /// Constructor
-    MirrorBands(double zm, bool c = false): AEM_MirrorBands(zm, c) { }
+    MirrorBands(double zm, bool c): AEM_MirrorBands(zm, c) { }
     
     /// recommended meshing radius
     double mesh_radius(double z, double rr) const;
     /// add mesh-guiding "features" to Polylines list
     void add_features(Polylines& v) const;
+};
+
+/// grounded side support bars
+class SideBars {
+public:
+    /// Constructor
+    SideBars();
+    /// geometry interior
+    bool inVolume(double x, double y) const;
+    /// add mesh-guiding "features" to Polylines list
+    void add_features(Polylines& v, double z0) const;
+    
+    double x0;          ///< center x
+    RoundRect RR;       ///< bar profile
 };
 
 /// aCORN electrostatic mirror
@@ -105,6 +120,7 @@ public:
     
     WireCap WC;         ///< mirror top cap wire grid
     MirrorBands MB;     ///< mirror bands
+    SideBars SB;        ///< grounded side bars
     double world_dz;    ///< world volume z half-length
     double world_r;     ///< world volume radius
     double world_rr;    ///< world volume radius^2

@@ -39,7 +39,7 @@ public:
     /// provide band potential [V] for point; DBL_MAX for non-band area
     double band_V(double z) const;
     
-    const bool continuous;              ///< whether or not to discretize into bands
+    bool continuous;                    ///< whether or not to discretize into bands
     const double mirror_radius;         ///< radius of mirror bands
     const double mirror_radius2;        ///< mirror radius squared
     const double band_period;           ///< band spacing band_period

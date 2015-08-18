@@ -128,7 +128,7 @@ void meshgen_test() {
     K::Plane_3 SPy(K::Point_3(0, 0, 0),   K::Vector_3(0,1,0));
     K::Plane_3 SPz(K::Point_3(0, 0, 0.15), K::Vector_3(0,0,1));
     FEMesh3Slice MSx(CP.c3t3, SPx, CP.myCT);
-    FEMesh3Slice MSy(CP.c3t3, SPy, CP.myCT);
+    FEMesh3Slice MSy(CP.c3t3, SPy, CP.myCT, 3);
     FEMesh3Slice MSz(CP.c3t3, SPz, CP.myCT, 2);
     
     // Visualize
@@ -141,7 +141,7 @@ void meshgen_test() {
     MSy.draw();
     V.draw(CP.myGeom);
     vsr::stopRecording();
-    //vsr::pause();
+    vsr::pause();
     
     startTime = clock();
     CP.M->solve();

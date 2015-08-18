@@ -12,8 +12,8 @@ plot_slice.cc SVGAnalyticalRenderer.cc SVGSliceRenderer.cc ../CellMatrix.cc ../A
 
 
 ./plot_slice ../../elemesholve-bld/slices_xyz.dat
-rsvg-convert -f pdf -o slices_xyz_0.pdf slices_xyz_0.svg
-inkscape slices_xyz_2.svg --export-pdf=slices_xyz_2.pdf
+rsvg-convert -f pdf -o slices_xyz_1.pdf slices_xyz_1.svg
+inkscape slices_xyz_1.svg --export-pdf=slices_xyz_1.pdf
 */
 
 #include "SVGSliceRenderer.hh"
@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
         
         if(SR.dcmode == SVGSliceRenderer::TRANSVERSE) {
             SR.zAxis.logscale = true;
+            SR.autoscale = false;
             zmin = 0.005;
             zmax = 500;
         }
@@ -58,8 +59,7 @@ int main(int argc, char** argv) {
         
         SR.read(is);
         SR.SH.display();
-        if(i==1) SR.SH.basis[2][1] *= -1; // fix left-handed coordinates!
-        load_aCORN_simfield(SR);
+        //load_aCORN_simfield(SR);
         
         if(false && SR.dcmode == SVGSliceRenderer::PHI) {
             //SR.makeMeshVis(0.001);

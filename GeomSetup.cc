@@ -186,6 +186,25 @@ void MirrorBands::add_features(Polylines& v) const {
 
 ////////////////////////////////////////
 
+SideBars::SideBars(): x0(3.25*2.54), RR(0.5*2.54, 2*2.54, 0.3) { }
+
+bool SideBars::inVolume(double x, double y) const {
+    return RR.inside(fabs(x)-x0, y);
+}
+
+void SideBars::add_features(Polylines& v, double z0) const {
+    auto perim = RR.perimeterpoints();
+    perim.push_back(perim[0]);
+    
+    Polyline_3 l;
+    for(auto it = perim.begin(); it != perim.end(); it++) l.push_back(K::Point_3(x0+it->first, it->second, z0));
+    v.push_back(l);
+    for(auto it = l.begin(); it != l.end(); it++) *it = K::Point_3(-it->x(), it->y(), z0);
+    v.push_back(l);
+}
+
+////////////////////////////////////////
+
 EMirrorWorldVolume::EMirrorWorldVolume(const CoordinateTransform* CT):
 GeomDomainFunction(CT),
 MB(-10, true),
@@ -197,9 +216,10 @@ world_rr(world_r*world_r) {
 }
 
 int EMirrorWorldVolume::f(double x, double y, double z) const {
-    if(fabs(z) > world_dz) return false;
+    if(fabs(z) > world_dz) return 0;
     double rr = x*x + y*y;
-    if(rr > world_rr) return false;
+    if(rr > world_rr) return 0;
+    if(SB.inVolume(x,y)) return 0;
     if(rr > MB.mirror_radius2 && z < MB.top_band_z) return 2;
     return WC.inVolume(x,y,z,rr)? 0 : 1;
 }
@@ -218,6 +238,8 @@ void EMirrorWorldVolume::add_features(Polylines& v) const {
     if(T) T->mesh2phys_J(K::Point_3(0,0,WC.gridz), sqz);
     WC.add_features(v, sqz);
     MB.add_features(v);
+    for(int zi = -1; zi <= 1; zi += 2) SB.add_features(v, world_dz*zi);
+    SB.add_features(v, MB.top_band_z);
 }
 
 double EMirrorWorldVolume::meshsize(double x, double y, double z) const {
@@ -236,6 +258,7 @@ EMirrorGeom::EMirrorGeom(const CoordinateTransform* CT): myWorld(CT)  {
 
 void EMirrorGeom::calc_bvals(const C3t3& M) {
     bpts.clear();
+    double rrsupports = pow(myWorld.SB.x0 - myWorld.SB.RR.xh,2);
     
     for(auto it = M.facets_in_complex_begin(); it != M.facets_in_complex_end(); it++) {
         for(int i=0; i<4; i++) {
@@ -247,9 +270,9 @@ void EMirrorGeom::calc_bvals(const C3t3& M) {
             if(myWorld.T) p = myWorld.T->mesh2phys(p);
             
             double rr = p.x()*p.x() + p.y()*p.y();
-            bool rinner = rr < 0.98*myWorld.world_rr; // inside outer wall?
+            bool rinner = rr < 0.98*rrsupports; // inside wall/supports?
             if(!rinner || p.z() > myWorld.WC.gridz + 2*myWorld.WC.thickness) {
-                bpts[vi] = 0;                                                                   // grounded wall, can top
+                bpts[vi] = 0;                                                                   // grounded wall, side bars, can top
             } else {
                 if(p.z() > myWorld.WC.gridz - 1.01*myWorld.WC.wire_radius) bpts[vi] = 0;        // grounded wires, cap
                 else if(rr < 1.01*myWorld.MB.mirror_radius2) {
