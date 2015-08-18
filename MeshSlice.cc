@@ -213,8 +213,18 @@ void MeshSlice::find_first_intersection() {
         find_intersections(searchPosition, ixn_vertices);
         if(ixn_vertices.size() != 3) continue;
         
+        // determine orientation
+        double osum = 0;
+        auto vprev = *ixn_vertices.rbegin();
+        double xprev[2] = { pdotv(vprev->point(),pcoords[0]), pdotv(vprev->point(),pcoords[1]) };
+        for(auto it = ixn_vertices.begin(); it != ixn_vertices.end(); it++) {
+            double xnext[2] = { pdotv((*it)->point(),pcoords[0]), pdotv((*it)->point(),pcoords[1]) };
+            osum += (xnext[0] - xprev[0])*(xnext[1] + xprev[1]);
+            for(int i=0; i<2; i++) xprev[i] = xnext[i];
+        }
         // set up initial orientation-guiding edge and return
-        new_edge(*ixn_vertices.begin(), *ixn_vertices.rbegin());
+        if(osum > 0) new_edge(*ixn_vertices.rbegin(), *ixn_vertices.begin());
+        else new_edge(*ixn_vertices.begin(), *ixn_vertices.rbegin());
         if(verbose >= 3) std::cout << "First intersecting cell: " << &*searchPosition << "\n";
         is_first_intersection = true;
         return;

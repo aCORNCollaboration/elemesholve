@@ -259,6 +259,7 @@ EMirrorGeom::EMirrorGeom(const CoordinateTransform* CT): myWorld(CT)  {
 void EMirrorGeom::calc_bvals(const C3t3& M) {
     bpts.clear();
     double rrsupports = pow(myWorld.SB.x0 - myWorld.SB.RR.xh,2);
+    RoundRect RR2(2.02*myWorld.SB.RR.xh, 2.02*myWorld.SB.RR.yh, myWorld.SB.RR.r); // slightly larger rectangle for side bars
     
     for(auto it = M.facets_in_complex_begin(); it != M.facets_in_complex_end(); it++) {
         for(int i=0; i<4; i++) {
@@ -270,9 +271,10 @@ void EMirrorGeom::calc_bvals(const C3t3& M) {
             if(myWorld.T) p = myWorld.T->mesh2phys(p);
             
             double rr = p.x()*p.x() + p.y()*p.y();
-            bool rinner = rr < 0.98*rrsupports; // inside wall/supports?
-            if(!rinner || p.z() > myWorld.WC.gridz + 2*myWorld.WC.thickness) {
-                bpts[vi] = 0;                                                                   // grounded wall, side bars, can top
+            if( rr > 0.98*myWorld.world_rr                              // outer wall
+                || RR2.inside(fabs(p.x())-myWorld.SB.x0, p.y())         // side bars
+                || p.z() > myWorld.WC.gridz + 2*myWorld.WC.thickness) { // can top
+                bpts[vi] = 0;
             } else {
                 if(p.z() > myWorld.WC.gridz - 1.01*myWorld.WC.wire_radius) bpts[vi] = 0;        // grounded wires, cap
                 else if(rr < 1.01*myWorld.MB.mirror_radius2) {

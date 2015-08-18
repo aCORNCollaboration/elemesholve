@@ -141,7 +141,7 @@ void meshgen_test() {
     MSy.draw();
     V.draw(CP.myGeom);
     vsr::stopRecording();
-    vsr::pause();
+    //vsr::pause();
     
     startTime = clock();
     CP.M->solve();

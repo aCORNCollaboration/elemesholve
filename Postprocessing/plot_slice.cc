@@ -38,8 +38,8 @@ int main(int argc, char** argv) {
         
         if(i==2) {
             SR.dcmode = SVGSliceRenderer::PHI;
-            zmin = 0;
-            zmax = 3.5;
+            //zmin = 0;
+            //zmax = 3.5;
         }
         
         if(SR.dcmode == SVGSliceRenderer::MEAN_PHI) {
