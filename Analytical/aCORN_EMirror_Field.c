@@ -52,6 +52,7 @@ void calc_aCORN_field(struct aCORN_EMirror* M, const double x[3], double E[3]) {
         double Er = -x[2] * M->E0 / (r * log(M->bore_radius/M->mirror_radius));
         E[0] += Er*x[0]/r;
         E[1] += Er*x[1]/r;
+        return;
     }
     
     // wireplane field contribution

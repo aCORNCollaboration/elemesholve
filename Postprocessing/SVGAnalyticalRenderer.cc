@@ -14,7 +14,6 @@ void load_aCORN_simfield(SVGSliceRenderer& S) {
     struct aCORN_EMirror M;
     init_aCORN(&M);
     double x[3];
-    double E[3];
     
     // new vertex values
     cout << "Calculating " << S.vertices.size() << " potential values...\n";
@@ -32,6 +31,7 @@ void load_aCORN_simfield(SVGSliceRenderer& S) {
     // new gradients 
     cout << "Calculating " << S.faces.size() << " field points...\n";
     ProgressBar* PB2 = new ProgressBar(S.faces.size(), S.faces.size()/20);
+    double E[3];
     int nfaces = 0;
     for(auto it = S.faces.begin(); it != S.faces.end(); it++) {
         PB2->update(nfaces++);
@@ -53,7 +53,8 @@ void load_aCORN_simfield(SVGSliceRenderer& S) {
         
         x[2] -= 3*M.wire_radius;
         calc_aCORN_field(&M, x, E);
-        for(int i=0; i<3; i++) it->x[i+1] = -E[i];
+        for(int i=0; i<3; i++) it->x[i+1] = -E[i]; // note minus sign, since we want grad phi = -E
+        //if(!(nfaces % 1000)) cout << "x = " << x[0] << ", " << x[1] << ", " << x[2] << "\tE = " << E[0] << ", " << E[1] << ", " << E[2] << "\n";
     }
     delete PB2;
     
