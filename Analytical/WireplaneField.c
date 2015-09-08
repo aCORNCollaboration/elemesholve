@@ -14,9 +14,9 @@ void wireplaneField(double r, double d, double l, double a, double* Eperp, doubl
     
     double c1 = 2*M_PI*l/d;
     double c2 = 2*M_PI*a/d;
-    double denom = 1 - cos(c2)/cosh(c1);
-    *Eperp = tanh(c1)/denom;
-    *Eparr = sin(c2)/cosh(c1)/denom;
+    double denom = 1./(1 - cos(c2)/cosh(c1));
+    *Eperp = tanh(c1) * denom;
+    *Eparr = sin(c2)/cosh(c1) * denom;
 }
 
 double wireplaneVOffset(double r, double d) {

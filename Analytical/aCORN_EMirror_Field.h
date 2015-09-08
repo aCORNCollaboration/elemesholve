@@ -12,9 +12,9 @@
 
 /// Simplified aCORN electrostatic mirror geometry. Wires at z=0.
 struct aCORN_EMirror {
-    double E0;                  ///< asymptotic field [V/cm] inside mirror
+    double E0;                  ///< asymptotic field [V/cm] inside mirror in upward (+z) direction
     double V0;                  ///< finite-wire-size-induced potential offset [V]
-    double wire_radius;         ///< grid wire radius [cm]
+    double wire_radius;         ///< grid wire radius [cm]; set = 0 for perfect plane
     double wire_spacing;        ///< spacing between wires [cm]
     double wire_shift;          ///< set to 0 for wire at x=0; set to 0.5 for gap centered at x=0
     double mirror_radius;       ///< radius of mirror bands

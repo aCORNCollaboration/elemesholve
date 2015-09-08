@@ -71,8 +71,8 @@ public:
     
     /// geometry interior
     bool inVolume(double x, double y, double z, double rr) const;
-    /// recommended meshing radius
-    double mesh_radius(double x, double y, double z, double rr) const;
+    /// recommended meshing radius^2
+    double mesh_radius2(double x, double y, double z, double rr) const;
     /// add mesh-guiding "features" to Polylines list
     void add_features(Polylines& v, double sqz = 1.0) const;
 };
@@ -83,8 +83,8 @@ public:
     /// Constructor
     MirrorBands(double zm, bool c): AEM_MirrorBands(zm, c) { }
     
-    /// recommended meshing radius
-    double mesh_radius(double z, double rr) const;
+    /// recommended meshing radius^2
+    double mesh_radius2(double z, double rr) const;
     /// add mesh-guiding "features" to Polylines list
     void add_features(Polylines& v) const;
 };
@@ -98,6 +98,8 @@ public:
     bool inVolume(double x, double y) const;
     /// add mesh-guiding "features" to Polylines list
     void add_features(Polylines& v, double z0) const;
+    /// recommended meshing radius^2
+    double mesh_radius2(double x, double y) const;
     
     double x0;          ///< center x
     RoundRect RR;       ///< bar profile

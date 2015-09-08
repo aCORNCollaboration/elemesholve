@@ -50,7 +50,7 @@ bool WireCap::inVolume(double x, double y, double z, double rr) const {
     return dr*dr + dz*dz < 0.25*thickness*thickness;
 }
 
-double WireCap::mesh_radius(double x, double y, double z, double rr) const {
+double WireCap::mesh_radius2(double x, double y, double z, double rr) const {
     double mr2 = 0;
     if(rr < entrance_radius2) {
         double wx = x/wire_spacing-0.5+100;
@@ -61,7 +61,7 @@ double WireCap::mesh_radius(double x, double y, double z, double rr) const {
         double dz = z-gridz;
         mr2 = dr*dr + dz*dz;
     }
-    return std::max(sqrt(mr2), wire_radius);
+    return std::max(mr2, wire_radius2);
 }
 
 void WireCap::add_features(Polylines& v, double sqz) const {
@@ -156,8 +156,8 @@ void WireCap::add_features(Polylines& v, double sqz) const {
 
 ////////////////////////////////////////
 
-double MirrorBands::mesh_radius(double z, double rr) const {
-    if(continuous) return 1000;
+double MirrorBands::mesh_radius2(double z, double rr) const {
+    if(continuous) return 1e6;
     
     double znear = top_band_z;
     if(z < top_band_z) {
@@ -169,7 +169,7 @@ double MirrorBands::mesh_radius(double z, double rr) const {
     
     double dr = sqrt(rr)-mirror_radius;
     double dz = z - znear;
-    return std::max(0.7*band_gap, sqrt(dz*dz + dr*dr));
+    return std::max(0.49*band_gap*band_gap, dz*dz + dr*dr);
 }
 
 void MirrorBands::add_features(Polylines& v) const {
@@ -201,6 +201,12 @@ void SideBars::add_features(Polylines& v, double z0) const {
     v.push_back(l);
     for(auto it = l.begin(); it != l.end(); it++) *it = K::Point_3(-it->x(), it->y(), z0);
     v.push_back(l);
+}
+
+double SideBars::mesh_radius2(double x, double y) const {
+    x = fabs(x) - x0 - (RR.xh-RR.r);
+    y = fabs(y) - (RR.yh-RR.r);
+    return std::max(x*x + y*y, RR.rr);
 }
 
 ////////////////////////////////////////
@@ -244,9 +250,10 @@ void EMirrorWorldVolume::add_features(Polylines& v) const {
 
 double EMirrorWorldVolume::meshsize(double x, double y, double z) const {
     double rr = x*x + y*y;
-    double r1 = MB.mesh_radius(z,rr);
-    double r2 = WC.mesh_radius(x,y,z,rr);
-    return std::min(world_meshsize, std::min(r1,r2));
+    double rr1 = MB.mesh_radius2(z,rr);
+    double rr2 = WC.mesh_radius2(x,y,z,rr);
+    double rr3 = SB.mesh_radius2(x,y);
+    return std::min(world_meshsize, sqrt(std::min(rr1,std::min(rr2,rr3))));
 }
 
 /////////////////////////////////////
