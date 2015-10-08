@@ -12,4 +12,6 @@
 
 void load_aCORN_simfield(SVGSliceRenderer& S);
 
+void load_Brian_simfield(SVGSliceRenderer& S);
+
 #endif

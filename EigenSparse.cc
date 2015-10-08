@@ -20,7 +20,7 @@ void EigenSparse::setupSolver() {
 
 void EigenSparse::finalize() {
     printf("Loading %zu matrix entries...\n", vals.size());
-    ProgressBar* PB = new ProgressBar(vals.size(),vals.size()/20);
+    ProgressBar* PB = new ProgressBar(vals.size());
     M.reserve(Eigen::VectorXi::Constant(M.cols(), 30));
     //M.reserve(vals.size());
     int nloaded = 0;

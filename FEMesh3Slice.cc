@@ -7,7 +7,6 @@
 
 #include "FEMesh3Slice.hh"
 #include "SVGBuilder.hh"
-#include "ProgressBar.hh"
 #include "BBox.hh"
 #include "HDS.hh"
 #include "SliceHeader.hh"
