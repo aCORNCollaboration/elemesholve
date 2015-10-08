@@ -27,6 +27,7 @@ public:
     double outcoord_scale = 1.0;        ///< coordinate scaling for SVG output
     bool autoscale = true;              ///< whether to auto-expand axis range
     SVGGradientAxis zAxis;              ///< color z axis
+    bool draw_axis = true;              ///< whether to draw z axis
     
     vector<Pixel> pxls;                 ///< pixels in image
     

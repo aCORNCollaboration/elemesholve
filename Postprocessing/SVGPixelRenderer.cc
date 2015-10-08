@@ -41,12 +41,13 @@ void SVGPixelRenderer::write_svg(const string& fname) {
     XMLBuilder::indent = "\t";
     SVG::svg s;
     s.addChild(new SVG::title("elemesholve slice"));
+    s.attrs["shape-rendering"] = "crispEdges"; // "geometricPrecision";
     
     // style definitions group
     SVG::defs* d = new SVG::defs();
     s.addChild(d);
     d->addChild(zAxis.base_gradient);
-    s.addChild(zAxis.axisGroup);
+    if(draw_axis) s.addChild(zAxis.axisGroup);
     
     // pixels group
     SVG::group* g = new SVG::group();
@@ -58,9 +59,22 @@ void SVGPixelRenderer::write_svg(const string& fname) {
     vector<SVG::rect*> rects;
     for(auto const& p: pxls) {
         if(autoscale) zAxis.range.expand(&p.z);
-        BB.expand(p.lo);
-        BB.expand(p.hi);
-        SVG::rect* r = new SVG::rect(p.lo[0], p.lo[1], 1.05*p.dl(0), 1.05*p.dl(1));
+        double x0[2];
+        double x1[2];
+        for(int i=0; i<2; i++) {
+            x0[i] = p.pos(-0.05,i);
+            x0[i] -= vis_center[i];
+            if(i) x0[i] *= -1;
+            x0[i] *= outcoord_scale;
+            
+            x1[i] = p.pos(1.05,i);
+            x1[i] -= vis_center[i];
+            if(i) x1[i] *= -1;
+            x1[i] *= outcoord_scale;
+        }
+        BB.expand(x0);
+        BB.expand(x1);
+        SVG::rect* r = new SVG::rect(x0[0], x0[1], x1[0]-x0[0], x1[1]-x0[1]);
         g->addChild(r);
         rects.push_back(r);
     }
@@ -70,15 +84,18 @@ void SVGPixelRenderer::write_svg(const string& fname) {
     printf("Z axis range %g -- %g\n", zAxis.range.lo[0], zAxis.range.hi[0]);
     for(size_t i=0; i<pxls.size(); i++) {
         double z = zAxis.axisUnits(pxls[i].z);
+        z = z > 0 ? (z < 1? z : 1) : 0;
         rects[i]->attrs["fill"] = "#"+color::rgb(zAxis.G.hsvcolor(z)).asHexString();
     }
             
-    // scale/move axis into position
-    double yscale = BB.dl(1);
-    zAxis.axisGroup->attrs["transform"] = "translate(" + to_str(BB.pos(1.1,0)) + " " + to_str(BB.pos(0.5,1) - 0.5*yscale) + ") scale(" + to_str(yscale) + ")";
-    // expand to final display window
-    double v[2] = { BB.pos(1.5,0), BB.hi[1] };
-    BB.expand(v);
+    if(draw_axis) {
+        // scale/move axis into position
+        double yscale = BB.dl(1);
+        zAxis.axisGroup->attrs["transform"] = "translate(" + to_str(BB.pos(1.1,0)) + " " + to_str(BB.pos(0.5,1) - 0.5*yscale) + ") scale(" + to_str(yscale) + ")";
+        // expand to final display window
+        double v[2] = { BB.pos(1.5,0), BB.hi[1] };
+        BB.expand(v);
+    }
     
     s.setView(BB, 10);
     s.write(o);

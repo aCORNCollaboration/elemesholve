@@ -7,7 +7,7 @@
 
 /*
 g++ -O3 --std=c++11 -o plot_slice -I../ -I../Analytical -I${MPMUTILS}/GeneralUtils/ -L${MPMUTILS}/GeneralUtils/ \
-plot_slice.cc BrianFields.cc SVGAnalyticalRenderer.cc SVGGradientAxis.cc SVGPixelRenderer.cc \
+plot_slice.cc BrianFields.cc SVGAnalyticalRenderer.cc SVGPixelRenderer.cc \
 SVGSliceRenderer.cc ../CellMatrix.cc ../Analytical/aCORN_EMirror_Field.c \
 ../Analytical/EndBesselCalc.c ../Analytical/WireplaneField.c -lgsl -lblas -lm -lMPMGeneralUtils
 
@@ -15,6 +15,8 @@ SVGSliceRenderer.cc ../CellMatrix.cc ../Analytical/aCORN_EMirror_Field.c \
 ./plot_slice ../../elemesholve-bld/slices_xyz.dat
 rsvg-convert -f pdf -o slices_xyz_1.pdf slices_xyz_1.svg
 inkscape slices_xyz_1.svg --export-pdf=slices_xyz_1.pdf
+
+inkscape BrianField.svg --export-pdf=BrianField.pdf
 */
 
 #include "SVGSliceRenderer.hh"
@@ -24,12 +26,23 @@ inkscape slices_xyz_1.svg --export-pdf=slices_xyz_1.pdf
 #include "BrianFields.hh"
 #include <stdio.h>
 
+float grid_integral(const TriCubic& G, size_t i0[3], size_t axis) {
+    float s = 0;
+    for(size_t i=0; i < G.NX[axis]; i++) {
+        i0[axis] = i;
+        s += G.at(i0);
+    }
+    s /= G.sx[axis];
+    return s;
+}
+
 void plot_gridslice() {
     TriCubic G[3];
     load_Brian_mirror(G);
     
-    const size_t PLOTX = 1;
+    const size_t PLOTX = 0;
     const size_t PLOTY = 2;
+    const size_t PLOTZ = 1;
     
     SVGPixelRenderer P;
     float x0[3];
@@ -45,14 +58,27 @@ void plot_gridslice() {
         x[PLOTX] = p.pos(0.5, 0);
         x[PLOTY] = p.pos(0.5, 1);
         float E[3] = { G[0](x), G[1](x), G[2](x) };
-        p.z = sqrt(E[0]*E[0] + E[1]*E[1] + E[2]*E[2]);
+        p.z = fabs(E[PLOTX]); // transverse field in V/cm
+        //p.z = sqrt(E[0]*E[0] + E[1]*E[1] + E[2]*E[2])*0.01; // field magnitude, V/cm
     }
     
     P.autoscale = false;
-    P.zAxis.range.lo[0] = 0.1;
-    P.zAxis.range.hi[0] = 10000;
+    P.zAxis.range.lo[0] = 0.005;
+    P.zAxis.range.hi[0] = 500;
     P.zAxis.logscale = true;
+    P.draw_axis = false;
+    P.outcoord_scale = 0.1;
     P.write_svg("../../elemesholve-bld/BrianField.svg");
+    
+    // y integrals
+    ii[PLOTZ] = G[0].NX[PLOTZ]/2;
+    for(size_t ix=0; ix<G[0].NX[PLOTX]; ix++) {
+        ii[PLOTX] = ix;
+        G[0].gridpos(ii,x0);
+        double s = grid_integral(G[PLOTX], ii, PLOTY);
+        printf("%.1f\t%.3f\n", x0[PLOTX], s);
+    }
+    
 }
 
 int main(int argc, char** argv) {

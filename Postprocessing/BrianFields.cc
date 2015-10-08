@@ -51,7 +51,7 @@ void load_Brian_mirror(TriCubic G[3], bool reload) {
         std::istringstream in(line);
         in >> x[0] >> x[1] >> x[2] >> E[0] >> E[1] >> E[2];
         
-        for(int i=0; i<3; i++) G[i].set(c,E[i]);
+        for(int i=0; i<3; i++) G[i].set(c, 0.01*E[i]);
         PB->update(nread++);
         if(!increment_counter<3>(c,dims)) break;
     }
