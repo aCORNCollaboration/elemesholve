@@ -18,12 +18,13 @@ struct aCORN_EMirror {
     double wire_spacing;        ///< spacing between wires [cm]
     double wire_shift;          ///< set to 0 for wire at x=0; set to 0.5 for gap centered at x=0
     double mirror_radius;       ///< radius of mirror bands
+    double mirror_length;       ///< length of mirror region
     double entrance_radius;     ///< wire grid entrance (proton direction) radius [cm]
     double exit_radius;         ///< wire grid exit radius [cm]
     double plate_radius;        ///< radius of grounded plate holding wire grid [cm]
     double bore_radius;         ///< radius of bore around assembly [cm]
-    double lowerField[MAX_BESSEL_TERMS];        ///< Bessel expansion coefficients for field below grid
-    struct DoubleBessel upperField;             ///< Bessel expansion coefficients for field above grid
+    struct DoubleBessel lowerField;     ///< Bessel expansion coefficients for field above grid
+    struct DoubleBessel upperField;     ///< Bessel expansion coefficients for field above grid
 };
 
 /// initialize default aCORN field parameter values

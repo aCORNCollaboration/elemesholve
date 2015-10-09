@@ -28,7 +28,8 @@ int main(int argc, char** argv) {
     
     struct aCORN_EMirror M;
     init_aCORN_params(&M);
-    M.wire_radius = 0.01;       // double wire radius
+    M.mirror_length = 10;       // truncated to grounded bottom in elemesholve
+    //M.wire_radius = 0.01;       // double wire radius
     init_aCORN_calcs(&M);
     M.wire_radius = 0;          // disable wire fields in subsequent calculations
     
@@ -51,8 +52,8 @@ int main(int argc, char** argv) {
     
     for(EP.x[0]=0; EP.x[0]<=4.0001; EP.x[0] += 0.05) {
         rm = rp = 0;
-        int err = gsl_integration_cquad(&F, -10, 0, abs_err, rel_err, gsl_cqd_ws, &rm, &e, &neval);
-        err = gsl_integration_cquad(&F, 0, 10, abs_err, rel_err, gsl_cqd_ws, &rp, &e, &neval);
+        int err = gsl_integration_cquad(&F, -8, -0.3, abs_err, rel_err, gsl_cqd_ws, &rm, &e, &neval);
+        err = gsl_integration_cquad(&F, 0.3, 8, abs_err, rel_err, gsl_cqd_ws, &rp, &e, &neval);
         printf("%.2f\t%.4f\t%.4f\t%.4f\n", EP.x[0], rm, rp, rm+rp);
     }
     

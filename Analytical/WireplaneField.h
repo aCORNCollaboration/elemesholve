@@ -8,7 +8,7 @@
 #ifndef WIREPLANEFIELD_H
 #define WIREPLANEFIELD_H
 
-/// field around wireplane producing unit field at infinity
+/// field around wireplane producing unit field at infinity; output units are [distance] = [potential]/[field]
 void wireplaneField(double r,           ///< wire radius
                     double d,           ///< wirespacing
                     double l,           ///< perpendicular distance from plane
@@ -17,7 +17,7 @@ void wireplaneField(double r,           ///< wire radius
                     double* Eparr       ///< output for field component parallel to plane
 );
 
-/// finite wire effect voltage offset
+/// finite wire effect potential offset; output units are [distance] = [potential]/[field]
 double wireplaneVOffset(double r,       ///< wire radius
                         double d        ///< wirespacing
 );

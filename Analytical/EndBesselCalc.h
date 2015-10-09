@@ -33,17 +33,17 @@ double sumBesselDerivZ(const double coeffs[MAX_BESSEL_TERMS], double z, double r
 struct DoubleBessel {
     double c0[MAX_BESSEL_TERMS];        ///< bottom end coeffs
     double c1[MAX_BESSEL_TERMS];        ///< top end coeffs
-    double dz;                          ///< (normalized) distance between ends
+    double dz;                          ///< distance between ends (normalized to radius units)
 };
 
 /// initialize two-ended Bessel from single-end coeffs. dz should already be set.
 void initDoubleBessel(struct DoubleBessel* BB, const double c0[MAX_BESSEL_TERMS], const double c1[MAX_BESSEL_TERMS]);
 
-/// sum two-ended bessel terms
+/// sum two-ended bessel terms (scaled to radius 1)
 double sumDoubleBessel(const struct DoubleBessel* BB, double z, double r);
-/// two-ended bessel r derivative
+/// two-ended bessel r derivative (scaled to radius 1)
 double sumDoubleBesselDR(const struct DoubleBessel* BB, double z, double r);
-/// two-ended bessel z derivative
+/// two-ended bessel z derivative (scaled to radius 1)
 double sumDoubleBesselDZ(const struct DoubleBessel* BB, double z, double r);
 
 #endif
