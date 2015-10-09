@@ -26,9 +26,10 @@ inkscape BrianField.svg --export-pdf=BrianField.pdf
 #include "BrianFields.hh"
 #include <stdio.h>
 
-float grid_integral(const TriCubic& G, size_t i0[3], size_t axis) {
+float grid_integral(const TriCubic& G, size_t i0[3], size_t axis, size_t x0 = 0, size_t x1 = -1) {
     float s = 0;
-    for(size_t i=0; i < G.NX[axis]; i++) {
+    if(x1==-1) x1 = G.NX[axis];
+    for(size_t i = x0; i < x1; i++) {
         i0[axis] = i;
         s += G.at(i0);
     }
@@ -75,16 +76,17 @@ void plot_gridslice() {
     for(size_t ix=0; ix<G[0].NX[PLOTX]; ix++) {
         ii[PLOTX] = ix;
         G[0].gridpos(ii,x0);
-        double s = grid_integral(G[PLOTX], ii, PLOTY);
-        printf("%.1f\t%.3f\n", x0[PLOTX], s);
+        double s0 = grid_integral(G[PLOTX], ii, PLOTY, 0, 78);
+        double s1 = grid_integral(G[PLOTX], ii, PLOTY, 80, -1);
+        printf("%.1f\t%.3f\t%.3f\t%.3f\n", x0[PLOTX], s0, s1, s0+s1);
     }
     
 }
 
 int main(int argc, char** argv) {
     
-    plot_gridslice();
-    return EXIT_SUCCESS;
+    //plot_gridslice();
+    //return EXIT_SUCCESS;
     
     if(argc != 2) {
         printf("./plot_slice <filename>.dat");
@@ -123,8 +125,8 @@ int main(int argc, char** argv) {
         
         SR.read(is);
         SR.SH.display();
-        //load_aCORN_simfield(SR);
-        load_Brian_simfield(SR);
+        load_aCORN_simfield(SR);
+        //load_Brian_simfield(SR);
         
         if(false && SR.dcmode == SVGSliceRenderer::PHI) {
             //SR.makeMeshVis(0.001);

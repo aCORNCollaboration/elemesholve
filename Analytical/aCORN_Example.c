@@ -15,7 +15,8 @@ int main(int argc, char** argv) {
     // create struct containing info for field calculations
     struct aCORN_EMirror M;
     // initialize struct with correct geometry dimensions and pre-calculated info
-    init_aCORN(&M);
+    init_aCORN_params(&M);
+    init_aCORN_calcs(&M);
     
     // array for position coordinate (x,y,z) [cm]
     // wires are spaced in x direction (0.2 cm apart), with bore axis along z

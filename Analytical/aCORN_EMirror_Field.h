@@ -26,8 +26,11 @@ struct aCORN_EMirror {
     struct DoubleBessel upperField;             ///< Bessel expansion coefficients for field above grid
 };
 
-/// initialize aCORN fields struct
-void init_aCORN(struct aCORN_EMirror* M);
+/// initialize default aCORN field parameter values
+void init_aCORN_params(struct aCORN_EMirror* M);
+
+/// initialize calcualted parameters in aCORN fields struct
+void init_aCORN_calcs(struct aCORN_EMirror* M);
 
 /// calculate electric field [V/cm] at specified (x,y,z) [cm] position. Wires spaced in x, centered at z=0; negative z inside mirror.
 void calc_aCORN_field(struct aCORN_EMirror* M, const double x[3], double E[3]);

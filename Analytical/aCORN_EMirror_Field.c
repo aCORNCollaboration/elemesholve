@@ -11,9 +11,8 @@
 #include <math.h>
 #include <stdio.h>
 
-void init_aCORN(struct aCORN_EMirror* M) { 
+void init_aCORN_params(struct aCORN_EMirror* M) {
     assert(M);
-    init_j0n(); // do this here to be sure!
     
     M->E0 = 70;
     M->wire_radius = 0.005;
@@ -24,6 +23,13 @@ void init_aCORN(struct aCORN_EMirror* M) {
     M->exit_radius = M->entrance_radius; //3.928;
     M->plate_radius = 6.5;
     M->bore_radius = 10.;
+}
+
+void init_aCORN_calcs(struct aCORN_EMirror* M) { 
+    assert(M);
+    init_j0n(); // do this here to be sure!
+    
+  
     
     M->V0 = wireplaneVOffset(M->wire_radius, M->wire_spacing) * M->E0/2;
     printf("Initializing aCORN geometry with mirror field %g V/cm, finite wire effect %.2f V.\n", M->E0, M->V0);

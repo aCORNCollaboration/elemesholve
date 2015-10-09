@@ -27,8 +27,10 @@ double Etransverse(double z, void* pp) {
 int main(int argc, char** argv) {
     
     struct aCORN_EMirror M;
-    init_aCORN(&M);
-    M.wire_radius = 0;  // disable wire fields in subsequent calculations
+    init_aCORN_params(&M);
+    M.wire_radius = 0.01;       // double wire radius
+    init_aCORN_calcs(&M);
+    M.wire_radius = 0;          // disable wire fields in subsequent calculations
     
     struct Eintegral_params EP;
     EP.M = &M;

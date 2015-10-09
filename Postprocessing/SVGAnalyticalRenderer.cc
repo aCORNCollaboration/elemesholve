@@ -14,7 +14,9 @@
 void load_aCORN_simfield(SVGSliceRenderer& S) {
     
     struct aCORN_EMirror M;
-    init_aCORN(&M);
+    init_aCORN_params(&M);
+    M.wire_radius = 0.01;
+    init_aCORN_calcs(&M);
     double x[3];
     
     // new vertex values
@@ -88,10 +90,8 @@ void load_Brian_simfield(SVGSliceRenderer& S) {
             nvtx++;
         } while (e != e0);
         for(int i=0; i<3; i++) x[i] /= nvtx;
-        //std::swap(x[0],x[1]);
-        x[2] -= 2.2;
         
-        for(int i=0; i<3; i++) it->x[i+1] = 0.01*G[i](x);
+        for(int i=0; i<3; i++) it->x[i+1] = G[i](x);
     }
     delete PB;
 }
