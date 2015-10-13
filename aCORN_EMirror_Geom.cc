@@ -13,7 +13,7 @@
 
 AEM_WireCap::AEM_WireCap():
 wire_radius(0.005),     // nominal 0.005
-wire_spacing(0.2),      // nominal 0.2
+wire_spacing(0.19),      // nominal 0.19
 entrance_radius(3.26*2.54/2.),
 exit_radius(3.928),
 outer_radius(6.5),

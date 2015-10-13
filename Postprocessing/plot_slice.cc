@@ -22,6 +22,7 @@ inkscape BrianField.svg --export-pdf=BrianField.pdf
 #include "SVGSliceRenderer.hh"
 #include "SVGPixelRenderer.hh"
 #include "SVGAnalyticalRenderer.hh"
+#include "aCORN_EMirror_Field.h"
 #include "StringManip.hh"
 #include "BrianFields.hh"
 #include <stdio.h>
@@ -71,6 +72,24 @@ void plot_gridslice() {
     P.outcoord_scale = 0.1;
     P.write_svg("../../elemesholve-bld/BrianField.svg");
     
+    //////////////////////////////////////////////////////
+    // spot check axis field. Compare to analytical model.
+    struct aCORN_EMirror M;
+    init_aCORN_params(&M);
+    init_aCORN_calcs(&M);
+    x[0] = 3.0;
+    x[1] = 0;
+    for(x[2] = -6; x[2] <= 6; x[2] += 0.02) {
+        double E[3];
+        double xx[3] = { x[0], x[1], x[2] };
+        calc_aCORN_field(&M, xx, E);
+        double phi = calc_aCORN_potential(&M, xx);
+        float GE[3];
+        for(int i=0; i<3; i++) GE[i] = G[i].eval_linear(x);
+        printf("%.2f\t%.3f\t%.3f\t%.3f\t\t%.3f\t%.3f\t%.3f\t\t%.3f\n", x[2], GE[0], GE[1], GE[2], E[0], E[1], E[2], phi);
+    }
+    
+    //////////////
     // y integrals
     ii[PLOTZ] = G[0].NX[PLOTZ]/2;
     for(size_t ix=0; ix<G[0].NX[PLOTX]; ix++) {
@@ -85,8 +104,8 @@ void plot_gridslice() {
 
 int main(int argc, char** argv) {
     
-    //plot_gridslice();
-    //return EXIT_SUCCESS;
+    plot_gridslice();
+    return EXIT_SUCCESS;
     
     if(argc != 2) {
         printf("./plot_slice <filename>.dat");

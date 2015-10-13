@@ -26,7 +26,7 @@ void load_Brian_mirror(TriCubic G[3], bool reload) {
         return;
     }
     
-    const double dz = -32.2;
+    const double dz = -27.857; // center on 0 at wires
     float r0[3] = {-6,-6, 20+dz};
     float r1[3] = { 6, 6, 40+dz};
     size_t dims[3] = {121, 121, 201};

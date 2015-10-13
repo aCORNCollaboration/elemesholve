@@ -28,8 +28,6 @@ int main(int argc, char** argv) {
     
     struct aCORN_EMirror M;
     init_aCORN_params(&M);
-    M.mirror_length = 10;       // truncated to grounded bottom in elemesholve
-    //M.wire_radius = 0.01;       // double wire radius
     init_aCORN_calcs(&M);
     M.wire_radius = 0;          // disable wire fields in subsequent calculations
     

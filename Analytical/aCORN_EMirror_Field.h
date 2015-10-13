@@ -23,6 +23,7 @@ struct aCORN_EMirror {
     double exit_radius;         ///< wire grid exit radius [cm]
     double plate_radius;        ///< radius of grounded plate holding wire grid [cm]
     double bore_radius;         ///< radius of bore around assembly [cm]
+    double upperLeakage;        ///< field leakage strength for upper volume
     struct DoubleBessel lowerField;     ///< Bessel expansion coefficients for field above grid
     struct DoubleBessel upperField;     ///< Bessel expansion coefficients for field above grid
 };
