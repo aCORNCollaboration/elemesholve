@@ -27,16 +27,49 @@ inkscape BrianField.svg --export-pdf=BrianField.pdf
 #include "BrianFields.hh"
 #include <stdio.h>
 
-float grid_integral(const TriCubic& G, size_t i0[3], size_t axis, size_t x0 = 0, size_t x1 = -1) {
-    float s = 0;
-    if(x1==-1) x1 = G.NX[axis];
-    for(size_t i = x0; i < x1; i++) {
-        i0[axis] = i;
-        s += G.at(i0);
+class GridIntegrator {
+public:
+    GridIntegrator() { }
+    
+    float grid_integral(const TriCubic& G, size_t i0[3], size_t axis, size_t a0 = 0, size_t a1 = -1) {
+        float s = 0;
+        if(a1==-1) a1 = G.NX[axis];
+        
+        i0[axis] = a0;
+        G.gridpos(i0, x0);
+        x0[axis] -= 0.5/G.sx[axis];
+        i0[axis] = a1;
+        G.gridpos(i0, x1);
+        x1[axis] -= 0.5/G.sx[axis]; 
+        
+        for(size_t i = a0; i < a1; i++) {
+            i0[axis] = i;
+            s += G.at(i0);
+        }
+        s /= G.sx[axis];
+        return s;
     }
-    s /= G.sx[axis];
-    return s;
-}
+    
+    float analytical_integral(const aCORN_EMirror& M, double E[3], size_t npts = 100) {
+        double dl = sqrt(pow(x0[0]-x1[0],2) + pow(x0[1]-x1[1],2) + pow(x0[2]-x1[2],2));
+        //printf("Integrating from (%.3f,%.3f,%.3f) to (%.3f,%.3f,%.3f); dl = %.3f\n", x0[0], x0[1], x0[2], x1[0], x1[1], x1[2], dl);
+        for(size_t j=0; j<3; j++) E[j] = 0;
+        double EE[3];
+        double p[3];
+        for(size_t i=0; i<npts; i++) {
+            float l = (i+0.5)/npts;
+            for(size_t j=0; j<3; j++) p[j] = x0[j]*(1-l) + x1[j]*l;
+            calc_aCORN_field(&M, p, EE);
+            for(size_t j=0; j<3; j++) E[j] += EE[j];
+            //printf("\t%.3f\t%.3f\t%.3f\n", EE[0], EE[1], EE[2]);
+        }
+       
+        for(size_t j=0; j<3; j++) E[j] *= dl/npts;
+    }
+    
+    float x0[3];
+    float x1[3];
+};
 
 void plot_gridslice() {
     TriCubic G[3];
@@ -72,11 +105,28 @@ void plot_gridslice() {
     P.outcoord_scale = 0.1;
     P.write_svg("../../elemesholve-bld/BrianField.svg");
     
+    
+    
     //////////////////////////////////////////////////////
     // spot check axis field. Compare to analytical model.
     struct aCORN_EMirror M;
     init_aCORN_params(&M);
     init_aCORN_calcs(&M);
+    //M.wire_radius = 0;
+    
+    for(auto& p: P.pxls) {
+        double xx[3];
+        xx[PLOTX] = p.pos(0.5, 0);
+        xx[PLOTY] = p.pos(0.5, 1);
+        xx[PLOTZ] = 0;
+        double EE[3];
+        calc_aCORN_field(&M, xx, EE);
+        p.z = fabs(EE[PLOTX]); // transverse field in V/cm
+        //p.z = sqrt(E[0]*E[0] + E[1]*E[1] + E[2]*E[2])*0.01; // field magnitude, V/cm
+    }
+    P.write_svg("../../elemesholve-bld/AnalyticalField.svg");
+    
+    /*
     x[0] = 3.0;
     x[1] = 0;
     for(x[2] = -6; x[2] <= 6; x[2] += 0.02) {
@@ -88,24 +138,31 @@ void plot_gridslice() {
         for(int i=0; i<3; i++) GE[i] = G[i].eval_linear(x);
         printf("%.2f\t%.3f\t%.3f\t%.3f\t\t%.3f\t%.3f\t%.3f\t\t%.3f\n", x[2], GE[0], GE[1], GE[2], E[0], E[1], E[2], phi);
     }
+    */
     
     //////////////
     // y integrals
+    GridIntegrator GI;
+    double E0[3];
+    double E1[3];
     ii[PLOTZ] = G[0].NX[PLOTZ]/2;
     for(size_t ix=0; ix<G[0].NX[PLOTX]; ix++) {
         ii[PLOTX] = ix;
-        G[0].gridpos(ii,x0);
-        double s0 = grid_integral(G[PLOTX], ii, PLOTY, 0, 78);
-        double s1 = grid_integral(G[PLOTX], ii, PLOTY, 80, -1);
-        printf("%.1f\t%.3f\t%.3f\t%.3f\n", x0[PLOTX], s0, s1, s0+s1);
+        double s0 = GI.grid_integral(G[PLOTX], ii, PLOTY, 0, 78);
+        if(!ix) printf("Integrating z from %.3f to %.3f\n", GI.x0[PLOTY], GI.x1[PLOTY]);
+        GI.analytical_integral(M, E0);
+        double s1 = GI.grid_integral(G[PLOTX], ii, PLOTY, 80, -1);
+        GI.analytical_integral(M, E1);
+        if(!ix) printf("Integrating z from %.3f to %.3f\n", GI.x0[PLOTY], GI.x1[PLOTY]);
+        printf("%.1f\t%.3f\t%.3f\t%.3f\t\t%.3f\t%.3f\t%.3f\n", GI.x0[PLOTX], s0, s1, s0+s1, E0[PLOTX], E1[PLOTX], E0[PLOTX]+E1[PLOTX]);
     }
     
 }
 
 int main(int argc, char** argv) {
     
-    plot_gridslice();
-    return EXIT_SUCCESS;
+    //plot_gridslice();
+    //return EXIT_SUCCESS;
     
     if(argc != 2) {
         printf("./plot_slice <filename>.dat");

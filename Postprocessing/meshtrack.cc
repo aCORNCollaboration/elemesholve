@@ -16,10 +16,15 @@ using std::ofstream;
 #include "Visr.hh"
 
 struct xycoord { float x, y; };
-struct fieldpoint {
+class fieldpoint {
+public:
+    fieldpoint() { }
+    
     float l;            ///< position parameter
     float E[3];         ///< field
     float phi;          ///< potential
+    
+    void display() const { cout << "E = (" << E[0] << ", " << E[1] << ", " << E[2] << "); phi = " << phi << "\n"; } 
 };
 
 /// Data from scan along mesh line
@@ -81,6 +86,22 @@ public:
         }
         return I*length()/scandat.size();
     }
+    
+    /// Show point
+    bool showPoint(SimplexMesh<3,float>& M, double l = 0.5) {
+        calcx(l);
+        int c = M.locate_cell(x);
+        if(c==-1) {
+            cout << "Tracking failed at " << x[0] << ", " << x[1] << ", " << x[2] << " !\n";
+            return false;
+        }
+        const SimplexMesh<3,float>::cell_tp& C = M.cells[c];
+        fieldpoint f;
+        f.phi = phi_tot(C, x, C.vmid);
+        for(int j=0; j<3; j++) f.E[j] = -C.psolved[j+1];
+        f.display();
+        return true;
+    } 
 };
 
 /// circle of scan points spaced approximately dr at radius r
@@ -114,6 +135,7 @@ void radial_scans() {
     
     //ofstream o("../../elemesholve-bld/scan.txt");
     ofstream oEt("../../elemesholve-bld/Et_scan.txt");
+    gridz = 0.015
     for(auto& p: v) {
         ScanLine L;
         float r = sqrt(p.x*p.x + p.y*p.y);
@@ -121,17 +143,22 @@ void radial_scans() {
         L.x0[1] = L.x1[1] = p.y;
         L.n = 400;
         
-        L.x0[2] = -8;
-        L.x1[2] = -0.3;
+        cout << "\nr = " << r << "\n";
+        
+        L.x0[2] = gridz-7.907;
+        L.x1[2] = gridz-0.107;
         float Et_inner = L.scan(M)? L.Et_integral() : -1000;
         L.scandat.clear();
+        L.showPoint(M);
         
-        L.x0[2] = 0.3;
-        L.x1[2] = 8;
+        L.x0[2] = gridz+0.093;
+        L.x1[2] = 9.999; //12.193;
         float Et_outer = L.scan(M)? L.Et_integral() : -1000;
+        L.showPoint(M);
         
-        if(Et_inner != -1000 && Et_outer != -1000) 
+        if(Et_inner != -1000 && Et_outer != -1000) {
             oEt << r << "\t" << Et_inner << "\t" << Et_outer << "\t" << Et_inner + Et_outer << "\n";
+        }
         
         //L.dump_scan(o);
     }

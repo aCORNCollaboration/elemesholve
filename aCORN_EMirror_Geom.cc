@@ -16,8 +16,8 @@ wire_radius(0.005),     // nominal 0.005
 wire_spacing(0.19),      // nominal 0.19
 entrance_radius(3.26*2.54/2.),
 exit_radius(3.928),
-outer_radius(6.5),
-thickness(1.0),
+outer_radius(5.84),
+thickness(1.08),
 gridz(3*wire_radius),
 platez(gridz-wire_radius),
 wire_radius2(wire_radius*wire_radius),

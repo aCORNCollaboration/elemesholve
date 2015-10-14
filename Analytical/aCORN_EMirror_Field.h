@@ -35,9 +35,9 @@ void init_aCORN_params(struct aCORN_EMirror* M);
 void init_aCORN_calcs(struct aCORN_EMirror* M);
 
 /// calculate electric field [V/cm] at specified (x,y,z) [cm] position. Wires spaced in x, centered at z=0; negative z inside mirror.
-void calc_aCORN_field(struct aCORN_EMirror* M, const double x[3], double E[3]);
+void calc_aCORN_field(const struct aCORN_EMirror* M, const double x[3], double E[3]);
 
 /// calculate electical potential [V] at specified (x,y,z) [cm] position.
-double calc_aCORN_potential(struct aCORN_EMirror* M, const double x[3]);
+double calc_aCORN_potential(const struct aCORN_EMirror* M, const double x[3]);
 
 #endif

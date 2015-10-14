@@ -18,14 +18,13 @@ void init_aCORN_params(struct aCORN_EMirror* M) {
     M->wire_radius = 0.005;
     M->wire_spacing = 0.19;
     M->wire_shift = 0.5;
-    M->mirror_radius = 5.45;
+    M->mirror_radius = 5.43;
     M->mirror_length = 23;
     M->entrance_radius = 3.26*2.54/2.; // = 4.1402
-    M->exit_radius = 3.928;
-    M->plate_radius = 6.5;
+    M->exit_radius = 3.928; // 3.09*2.54/2 = 3.924
+    M->plate_radius = 5.84;
     
     M->bore_radius = M->exit_radius;
-    M->upperField.dz = 2;
     //M->bore_radius = 12.;
     //M->upperField.dz = 1;
     
@@ -51,10 +50,11 @@ void init_aCORN_calcs(struct aCORN_EMirror* M) {
     //addCircle(c0, 0.9, M->upperLeakage*M->V0);
     //addCircle(c0, M->plate_radius / M->bore_radius, -M->upperLeakage*M->V0);
     addCircle(c0, M->exit_radius / M->bore_radius, M->V0);
+    M->upperField.dz = 12./M->bore_radius;
     initDoubleBessel(&M->upperField, c0, c1);
 }
 
-void calc_aCORN_field(struct aCORN_EMirror* M, const double x[3], double E[3]) {
+void calc_aCORN_field(const struct aCORN_EMirror* M, const double x[3], double E[3]) {
     E[0] = E[1] = E[2] = 0;
     
     double r = sqrt(x[0]*x[0] + x[1]*x[1]); // radial coordinate
@@ -104,7 +104,7 @@ void calc_aCORN_field(struct aCORN_EMirror* M, const double x[3], double E[3]) {
     }
 }
 
-double calc_aCORN_potential(struct aCORN_EMirror* M, const double x[3]) {
+double calc_aCORN_potential(const struct aCORN_EMirror* M, const double x[3]) {
     double phi = 0;
     double r = sqrt(x[0]*x[0] + x[1]*x[1]); // radial coordinate
     
