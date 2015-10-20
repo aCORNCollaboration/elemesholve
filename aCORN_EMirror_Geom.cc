@@ -33,6 +33,7 @@ band_period(0.7),        // nominal 0.7  cm
 band_gap(0.03),          // nominal 0.03 cm
 rel_gap(band_gap/band_period),
 top_band_z(-band_gap),
+V0_z(0),
 zmin(zm),
 E0(70)
 { }
@@ -40,7 +41,7 @@ E0(70)
 double AEM_MirrorBands::band_V(double z) const {
     if(continuous) {
         if(z > top_band_z) return DBL_MAX;
-        return E0*(top_band_z - z);
+        return E0*(V0_z - z);
     }
     
     double bz = band_coord(z);

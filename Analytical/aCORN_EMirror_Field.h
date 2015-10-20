@@ -17,6 +17,7 @@ struct aCORN_EMirror {
     double wire_radius;         ///< grid wire radius [cm]; set = 0 for perfect plane
     double wire_spacing;        ///< spacing between wires [cm]
     double wire_shift;          ///< set to 0 for wire at x=0; set to 0.5 for gap centered at x=0
+    double wire_dz;             ///< wire z relative to nominal V=0 position for mirror bands
     double mirror_radius;       ///< radius of mirror bands
     double mirror_length;       ///< length of mirror region
     double entrance_radius;     ///< wire grid entrance (proton direction) radius [cm]

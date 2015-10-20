@@ -135,7 +135,7 @@ void radial_scans() {
     
     //ofstream o("../../elemesholve-bld/scan.txt");
     ofstream oEt("../../elemesholve-bld/Et_scan.txt");
-    gridz = 0.015
+    double gridz = 0.015;
     for(auto& p: v) {
         ScanLine L;
         float r = sqrt(p.x*p.x + p.y*p.y);
@@ -152,7 +152,7 @@ void radial_scans() {
         L.showPoint(M);
         
         L.x0[2] = gridz+0.093;
-        L.x1[2] = 9.999; //12.193;
+        L.x1[2] = gridz+12.193;
         float Et_outer = L.scan(M)? L.Et_integral() : -1000;
         L.showPoint(M);
         

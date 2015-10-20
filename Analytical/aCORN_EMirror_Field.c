@@ -23,11 +23,9 @@ void init_aCORN_params(struct aCORN_EMirror* M) {
     M->entrance_radius = 3.26*2.54/2.; // = 4.1402
     M->exit_radius = 3.928; // 3.09*2.54/2 = 3.924
     M->plate_radius = 5.84;
+    M->wire_dz = 0;
     
-    M->bore_radius = M->exit_radius;
-    //M->bore_radius = 12.;
-    //M->upperField.dz = 1;
-    
+    M->bore_radius = M->exit_radius;    
     M->upperLeakage = 0.;
     
 }
@@ -38,6 +36,10 @@ void init_aCORN_calcs(struct aCORN_EMirror* M) {
     
     M->V0 = wireplaneVOffset(M->wire_radius, M->wire_spacing) * M->E0/2;
     printf("Initializing aCORN geometry with mirror field %g V/cm, finite wire effect %.2f V.\n", M->E0, M->V0);
+    if(M->wire_dz) {
+        M->V0 += M->wire_dz * M->E0;
+        printf("\twith positional voltage shift to effective %.2f V\n", M->V0);
+    }
     
     double l0[MAX_BESSEL_TERMS] = {0};
     double l1[MAX_BESSEL_TERMS] = {0};

@@ -48,6 +48,7 @@ void SVGPixelRenderer::write_svg(const string& fname) {
     s.addChild(d);
     d->addChild(zAxis.base_gradient);
     if(draw_axis) s.addChild(zAxis.axisGroup);
+    assert(zAxis.axisGroup);
     
     // pixels group
     SVG::group* g = new SVG::group();
@@ -93,11 +94,13 @@ void SVGPixelRenderer::write_svg(const string& fname) {
         double yscale = BB.dl(1);
         zAxis.axisGroup->attrs["transform"] = "translate(" + to_str(BB.pos(1.1,0)) + " " + to_str(BB.pos(0.5,1) - 0.5*yscale) + ") scale(" + to_str(yscale) + ")";
         // expand to final display window
-        double v[2] = { BB.pos(1.5,0), BB.hi[1] };
+        double v[2] = { BB.pos(1.7,0), BB.hi[1] };
         BB.expand(v);
     }
     
     s.setView(BB, 10);
     s.write(o);
     o.close();
+    
+    printf("Output svg to '%s'\n", fname.c_str());
 }

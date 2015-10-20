@@ -213,12 +213,13 @@ double SideBars::mesh_radius2(double x, double y) const {
 
 EMirrorWorldVolume::EMirrorWorldVolume(const CoordinateTransform* CT):
 GeomDomainFunction(CT),
-MB(-10, true),
-world_dz(10),
+world_dz(15),
 world_r(10),
-world_rr(world_r*world_r) {
-    world_meshsize = 1.5;
+world_rr(world_r*world_r),
+MB(-world_dz, true) {
+    world_meshsize = 0.8;
     myBounds = CGAL::Bbox_3(-world_r-1, -world_r-1, -world_dz-1,  world_r+1, world_r+1, world_dz+1);
+    MB.V0_z = WC.gridz;
 }
 
 int EMirrorWorldVolume::f(double x, double y, double z) const {

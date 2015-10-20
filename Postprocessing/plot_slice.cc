@@ -17,6 +17,7 @@ rsvg-convert -f pdf -o slices_xyz_1.pdf slices_xyz_1.svg
 inkscape slices_xyz_1.svg --export-pdf=slices_xyz_1.pdf
 
 inkscape BrianField.svg --export-pdf=BrianField.pdf
+rsvg-convert -f pdf -o BrianField.pdf BrianField.svg
 */
 
 #include "SVGSliceRenderer.hh"
@@ -101,7 +102,11 @@ void plot_gridslice() {
     P.zAxis.range.lo[0] = 0.005;
     P.zAxis.range.hi[0] = 500;
     P.zAxis.logscale = true;
-    P.draw_axis = false;
+    for(int i=0; i<6; i++) {
+        P.zAxis.addtick(0.01*pow(10,i));
+        for(int j=2; j<=9; j++) P.zAxis.addtick(0.001*j*pow(10,i), "", 1);
+    }
+    P.draw_axis = true;
     P.outcoord_scale = 0.1;
     P.write_svg("../../elemesholve-bld/BrianField.svg");
     
@@ -112,7 +117,6 @@ void plot_gridslice() {
     struct aCORN_EMirror M;
     init_aCORN_params(&M);
     init_aCORN_calcs(&M);
-    //M.wire_radius = 0;
     
     for(auto& p: P.pxls) {
         double xx[3];
@@ -145,16 +149,27 @@ void plot_gridslice() {
     GridIntegrator GI;
     double E0[3];
     double E1[3];
+    double E2[3];
     ii[PLOTZ] = G[0].NX[PLOTZ]/2;
     for(size_t ix=0; ix<G[0].NX[PLOTX]; ix++) {
         ii[PLOTX] = ix;
+        
         double s0 = GI.grid_integral(G[PLOTX], ii, PLOTY, 0, 78);
         if(!ix) printf("Integrating z from %.3f to %.3f\n", GI.x0[PLOTY], GI.x1[PLOTY]);
         GI.analytical_integral(M, E0);
+        
         double s1 = GI.grid_integral(G[PLOTX], ii, PLOTY, 80, -1);
         GI.analytical_integral(M, E1);
         if(!ix) printf("Integrating z from %.3f to %.3f\n", GI.x0[PLOTY], GI.x1[PLOTY]);
-        printf("%.1f\t%.3f\t%.3f\t%.3f\t\t%.3f\t%.3f\t%.3f\n", GI.x0[PLOTX], s0, s1, s0+s1, E0[PLOTX], E1[PLOTX], E0[PLOTX]+E1[PLOTX]);
+        
+        double s2 = GI.grid_integral(G[PLOTX], ii, PLOTY, 78, 80);
+        double r0 = M.wire_radius;
+        M.wire_radius = 0;
+        GI.analytical_integral(M, E2);
+        M.wire_radius = r0;
+        if(!ix) printf("Integrating z from %.3f to %.3f\n", GI.x0[PLOTY], GI.x1[PLOTY]);
+        
+        printf("%.1f\t%.3f\t%.3f\t%.3f\t\t%.3f\t%.3f\t%.3f\t%.3f\n", GI.x0[PLOTX], s0, s1, s0+s1, E0[PLOTX], E1[PLOTX], E0[PLOTX]+E1[PLOTX], E2[PLOTX]);
     }
     
 }
@@ -201,13 +216,18 @@ int main(int argc, char** argv) {
         
         SR.read(is);
         SR.SH.display();
-        load_aCORN_simfield(SR);
+        //load_aCORN_simfield(SR);
         //load_Brian_simfield(SR);
         
         if(false && SR.dcmode == SVGSliceRenderer::PHI) {
             //SR.makeMeshVis(0.001);
             SR.vis_rmax2 = 5.5*5.5;
             SR.merge_gradient_regions(0.05);
+        }
+        
+        for(int n=0; n<6; n++) {
+            SR.zAxis.addtick(0.01*pow(10,n));
+            for(int j=2; j<=9; j++) SR.zAxis.addtick(0.001*j*pow(10,n), "", 1);
         }
         
         string outfl = dropLast(infl,".")+"_"+to_str(i)+".svg";

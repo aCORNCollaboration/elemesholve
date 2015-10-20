@@ -120,12 +120,12 @@ public:
     /// add mesh-guiding "features" to Polylines list
     virtual void add_features(Polylines& v) const;
     
-    WireCap WC;         ///< mirror top cap wire grid
-    MirrorBands MB;     ///< mirror bands
-    SideBars SB;        ///< grounded side bars
     double world_dz;    ///< world volume z half-length
     double world_r;     ///< world volume radius
     double world_rr;    ///< world volume radius^2
+    WireCap WC;         ///< mirror top cap wire grid
+    MirrorBands MB;     ///< mirror bands
+    SideBars SB;        ///< grounded side bars
 };
 
 /// aCORN NG-6 electrostatic mirror test geometry

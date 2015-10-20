@@ -47,5 +47,6 @@ public:
     const double rel_gap;               ///< relative gap size band_gap/band_period
     const double top_band_z;            ///< z level of top of band
     const double zmin;                  ///< cutoff minimum z
+    double V0_z;                        ///< z for nominal V=0
     const double E0;                    ///< average electric field, V/cm
 };
