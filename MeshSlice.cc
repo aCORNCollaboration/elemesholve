@@ -244,8 +244,8 @@ MS_HDS::Vertex_handle MeshSlice::Intersection_handler::operator()(const K::Point
         degenerate_points[e.second] = v;
     } else {
         degeneracy = 0;
-        double c0 = sqrt(CGAL::squared_distance(e.first->point(), P));
-        double c1 = sqrt(CGAL::squared_distance(e.second->point(), P));
+        double c0 = sqrt(CGAL::squared_distance(e.first->point().point(), P));
+        double c1 = sqrt(CGAL::squared_distance(e.second->point().point(), P));
         v->c = c0/(c0+c1);
         intersections[v->mySeg] = v;
     }
@@ -255,9 +255,9 @@ MS_HDS::Vertex_handle MeshSlice::Intersection_handler::operator()(const K::Point
 
 MS_HDS::Vertex_handle MeshSlice::Intersection_handler::operator()(const K::Segment_3& s) {
     MS_HDS::Vertex_handle v1 = M.vertices_push_back(MS_HDS::Vertex(Tr3Edge(e.first, e.first)));
-    v1->point() = e.first->point();
+    v1->point() = e.first->point().point();
     MS_HDS::Vertex_handle v2 =  M.vertices_push_back(MS_HDS::Vertex(Tr3Edge(e.second, e.second)));
-    v2->point() = e.second->point();
+    v2->point() = e.second->point().point();
     intersections[v1->mySeg] = v1;
     degenerate_points[e.first] = v1;
     intersections[v2->mySeg] = v2;
@@ -290,10 +290,10 @@ MS_HDS::Vertex_handle MeshSlice::Intersection_handler::edgeIntersectsPlane(Tr::C
     if(it != intersections.end()) return it->second;
     
     if(T) {
-        auto ixn = intersection(P, K::Segment_3(T->mesh2phys(e.first->point()),T->mesh2phys(e.second->point())));
+        auto ixn = intersection(P, K::Segment_3(T->mesh2phys(e.first->point().point()),T->mesh2phys(e.second->point().point())));
         if(ixn) return boost::apply_visitor(*this, *ixn);
     } else {
-        auto ixn = intersection(P, K::Segment_3(e.first->point(), e.second->point()));
+        auto ixn = intersection(P, K::Segment_3(e.first->point().point(), e.second->point().point()));
         if(ixn) return boost::apply_visitor(*this, *ixn);
     }
     return NULL;

@@ -10,8 +10,8 @@
 using std::cout;
 
 void draw_Tr3Edge(const Tr3Edge& L, const CoordinateTransform* T) {
-    const K::Point_3& p1 = L.first->point();
-    const K::Point_3& p2 = L.second->point();
+    const auto p1 = L.first->point().point();
+    const auto p2 = L.second->point().point();
     if(!T) vsr::line(PtoV(p1) , PtoV(p2));
     else vsr::line(PtoV(T->mesh2phys(p1)) , PtoV(T->mesh2phys(p2)));
 }
@@ -29,8 +29,8 @@ void draw_facet(const Facet& F) {
         if(i==F.second) continue;
         for(int j=i+1; j<4; j++) {
             if(j==F.second) continue;
-            vsr::vec3 p1 = PtoV(F.first->vertex(i)->point());
-            vsr::vec3 p2 = PtoV(F.first->vertex(j)->point());
+            vsr::vec3 p1 = PtoV(F.first->vertex(i)->point().point());
+            vsr::vec3 p2 = PtoV(F.first->vertex(j)->point().point());
             vsr::line(p1 , p2);
         }
     }
@@ -39,8 +39,8 @@ void draw_facet(const Facet& F) {
 void draw_cell(const Cell& C) {
     for(int i=0; i<3; i++) {
         for(int j=i+1; j<4; j++) {
-            vsr::vec3 p1 = PtoV(C.vertex(i)->point());
-            vsr::vec3 p2 = PtoV(C.vertex(j)->point());
+            vsr::vec3 p1 = PtoV(C.vertex(i)->point().point());
+            vsr::vec3 p2 = PtoV(C.vertex(j)->point().point());
             vsr::line(p1 , p2);
         }
     }

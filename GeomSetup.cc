@@ -275,7 +275,7 @@ void EMirrorGeom::calc_bvals(const C3t3& M) {
             C3t3::Vertex_handle vi = it->first->vertex(i);
             if(bpts.count(vi)) continue;
             
-            K::Point_3 p = vi->point();
+            auto p = vi->point().point();
             if(myWorld.T) p = myWorld.T->mesh2phys(p);
             
             double rr = p.x()*p.x() + p.y()*p.y();
@@ -337,7 +337,7 @@ void SphereTestGeom::calc_bvals(const C3t3& M) {
         for(int i=0; i<4; i++) {
             if(i==it->second) continue;
             C3t3::Vertex_handle vi = it->first->vertex(i);
-            K::Point_3 p = vi->point();
+            auto p = vi->point().point();
             if(theWorld->T) p = theWorld->T->mesh2phys(p);
             double rr = p.x()*p.x() + p.y()*p.y() + p.z()*p.z();
             bpts[vi] = (rr > rinner*rinner*1.1? 1. : 1./rinner);

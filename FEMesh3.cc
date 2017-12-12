@@ -20,7 +20,7 @@ FEMeshSolver(new EigenSparse(), new EigenSparse()), T(CT) {
         for(int i=0; i<4; i++) {
             C.v_ID[i] = it->vertex(i);
             vertex_enum[C.v_ID[i]] = 0;
-            K::Point_3 p = it->vertex(i)->point();
+            auto p = it->vertex(i)->point().point();
             if(T) p = T->mesh2phys(p);
             CV.v[i][0] = p.x();
             CV.v[i][1] = p.y();
@@ -57,7 +57,7 @@ void FEMesh3::write(ostream& o) const {
     n = 0;
     for(auto it = vxnums().begin(); it !=  vxnums().end(); it++) {
         vtxenum[it->first] = n++;
-        K::Point_3 p = it->first->point();
+        auto p = it->first->point().point();
         if(T) p = T->mesh2phys(p);
         vx[0] = p.x();
         vx[1] = p.y();

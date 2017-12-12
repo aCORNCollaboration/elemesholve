@@ -17,7 +17,7 @@
 using std::set;
 
 /// convert Point_3 to visualizer coordinate vector
-inline vsr::vec3 PtoV(const Point_3& P) { return {{P.x(), P.y(), P.z()}}; }
+inline vsr::vec3 PtoV(const Point_3 P) { return {{P.x(), P.y(), P.z()}}; }
 /// visualize edge in a 3D triangulation
 void draw_Tr3Edge(const Tr3Edge& L, const CoordinateTransform* T = NULL);
 /// visualize polyhedron
